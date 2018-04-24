@@ -1,0 +1,23 @@
+<!-- 启动页 -->
+<scroll-view id="background">
+  <swiper current="{{current}}" circular="true" duration="{{duration}}">
+    <swiper-item wx:for="{{bgiQueue}}" wx:for-item="item" wx:key="bgiQueue">
+      <image mode="aspectFill" src="{{item}}"></image>
+    </swiper-item>
+  </swiper>
+</scroll-view> 
+
+<view id="mainFn" bindtouchstart="changeBackgroundImage" bindtouchend="changeBackgroundImage">
+  <view class="logo module">
+    <image mode="widthFix" src="../images/logo.png"></image>
+  </view>
+  <view class="startUsing module">
+    <image mode="widthFix" src="../images/start.png" bindtap="startUsing"></image>
+  </view>
+  <view class="motto module">
+    <image mode="widthFix" src="../images/motto.png"></image>
+  </view>
+  <view class="versionSign">
+    <text>Version：{{version}}</text>
+  </view>
+</view>

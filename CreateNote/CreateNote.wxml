@@ -1,0 +1,110 @@
+<!-- 写记事页 -->
+<scroll-view id="background">
+  <swiper current="{{current}}" circular="true" duration="{{duration}}">
+    <swiper-item wx:for="{{bgiQueue}}" wx:for-item="item" wx:key="bgiQueue">
+      <image mode="aspectFill" src="{{item}}"></image>
+    </swiper-item>
+  </swiper>
+</scroll-view>
+
+<scroll-view id="mainFn" wx:if="{{mainFnDisplay}}" bindtouchstart="changeBackgroundImage" bindtouchend="changeBackgroundImage">
+
+  <view class="menu" wx:if="{{noting === 'menu'}}">
+    <view class="title">
+      <input value="{{title}}" placeholder="{{titleDefault}}" bindfocus="titleContent" bindinput="titleContent" bindblur="titleContent"></input>
+    </view>
+    <view class="selection">
+      <view class="text sel" bindtap="getTextFn" bindlongpress="getTextFn" style="border:9rpx solid {{text.content.length > 0 ? 'red' : 'green'}}">
+        <image src="../images/text.png"></image>
+      </view>
+      <view class="voice sel" bindtap="getVoiceFn" bindlongpress="getVoiceFn" style="border:9rpx solid {{playback.length > 0 && playback.length < 5  ? 'orange': playback.length === 5 ? 'red' : 'green'}}">
+        <image src="../images/voice.png"></image>
+      </view>
+      <view class="photo sel" bindtap="getPhotoFn" bindlongpress="getPhotoFn" style="border:9rpx solid {{img.length > 0 && img.length < 5  ? 'orange': img.length === 5 ? 'red' : 'green'}}">
+        <image src="../images/image.png"></image>
+      </view>
+      <view class="shoot sel"bindtap="getShootFn" bindlongpress="getShootFn" style="border:9rpx solid {{videoSrc.length > 0 ? 'red' : 'green'}}">
+        <image src="../images/video.png"></image>
+      </view>
+      <view class="save_cancel sel" bindtap="save_cancel">
+        <image src="../images/{{ ((( text.content.length > 0 || playback.length > 0) || img.length > 0) || videoSrc.length > 0) ? 'save' : 'cancel' }}.png"></image>
+      </view>
+    </view>
+  </view>
+
+  <view class="noting" wx:if="{{noting !== 'menu'}}">
+    <view class="exit">
+        <image src="../images/{{ (noting === 'text' || noting === 'voice') ? noting : noting === 'photo' ? 'image': 'VCR' }}.png" bindtap="backToMenu"></image>
+    </view>
+    <view class="creating">
+      <view class="text sel" wx:if="{{noting === 'text'}}">
+        <view class="writing">
+          <textarea value="{{text.content || ''}}" maxlength="none" style="font-size:{{text.fontSize || '100%'}};font-weight:{{text.fontWeight || 'normal'}};color:{{text.fontColor || '#000'}};" bindfocus="textContent" bindinput="textContent" bindblur="textContent"></textarea>
+        </view>
+        <view class="font">
+          <picker mode="multiSelector" value="{{text.fontIndex}}" range="{{font}}" bindtap="setFontStyle" bindlongpress="setFontStyle" bindcolumnchange="setFontStyle" bindchange="setFontStyle" bindcancel="setFontStyle">
+            <image src="../images/font-set.png"></image>
+          </picker>
+        </view>
+      </view>
+      <view class="voice sel" wx:if="{{noting === 'voice'}}">
+        <view class="record ele">
+          <view class="rec_component" style="transform: rotate({{recording * 3.6}}deg);" >
+            <view class="rec_pointer"></view>
+            <button animation="{{breathingEffection}}" bindtouchstart="startRecord" bindtouchend="stopRecord"></button>
+          </view>
+        </view>
+        <view class="playback ele">
+          <button id="rec_{{item.record_index}}" src="{{item.url}}" wx:for="{{playback}}" wx:for-item="item" wx:key="{{item}}" style="opacity:{{item.opacity}}" bindtap="playback_delete" bindlongpress="playback_delete" bindended="playback_delete">{{index + 1}}</button>
+        </view>
+      </view>
+      <view class="photo sel" wx:if="{{noting === 'photo'}}">
+        <swiper wx:if="{{ !ifDeleting }}" current="{{imgCurrent}}" circular="true"
+        indicator-dots="true" indicator-active-color="#fff" bindanimationfinish="setImgCurrent">
+          <swiper-item id="photo_{{item.photo_index}}" wx:for="{{img}}" wx:for-item="item" wx:key="{{item.photo}}" bindtap="check_deletePhoto" bindlongpress="check_deletePhoto">
+            <image id="photo_{{item.photo_index}}" mode="aspectFit" src="{{item.url}}"></image>
+          </swiper-item>
+        </swiper>
+      </view>
+      <view class="video sel" wx:if="{{noting === 'video'}}">
+        <video src="{{videoSrc}}"></video>
+      </view>
+    </view>
+  </view>
+  
+</scroll-view>
+
+
+<view id="cameraFn" wx:if="{{cameraFnDisplay}}">
+  <camera style="display:{{!ifPreview ? 'block' : 'none'}}" flash="{{flash}}" device-position="{{camSet}}">
+    <cover-view class="top">
+      <cover-view class="goback" wx:if="{{!shootNow}}" bindtap="goback">
+        <cover-image mode="widthFix" src="../images/goback.png"></cover-image>
+      </cover-view>
+      <cover-view class="camSet" wx:if="{{!shootNow}}" bindtap="camSet">
+        <cover-image mode="widthFix" src="../images/camSet.png" style="opacity: {{ camSign }};  "></cover-image>
+      </cover-view>
+      <cover-view class="flashSet" wx:if="{{ifPhoto}}" bindtap="flashSet">
+        <cover-image mode="widthFix" src="{{flashSet}}"></cover-image>
+      </cover-view>
+      <cover-view class="shootSign" wx:if="{{!ifPhoto}}" style="opacity:{{shootSign}}"></cover-view>
+    </cover-view>
+    <cover-view class="bottom">
+      <cover-view class="preview component" wx:if="{{ifPhoto}}" bindtap="preview">
+        <cover-image src="{{preview}}"></cover-image>
+      </cover-view>
+      <cover-view class="cameraSet component" bindtap="cameraSet">
+        <cover-image mode="widthFix" src="{{cameraSet}}"></cover-image>
+      </cover-view>
+      <cover-view class="changeMode component" wx:if="{{!shootNow}}" bindtap="changeMode">
+        <cover-image mode="widthFix" src="{{changeMode}}"></cover-image>
+      </cover-view>
+      <cover-view class="qualitySet" wx:if="{{ifPhoto}}" bindtap="qualitySet">{{qualitySet}}</cover-view>
+    </cover-view>
+  </camera>
+  <swiper wx:if="{{ ifPreview }}" current="{{imgCurrent}}" bindtap="preview">
+    <swiper-item wx:for="{{img}}" wx:key="{{item.url}}" wx:for-item="item">
+      <image src="{{item.url}}"></image>    
+    </swiper-item>
+  </swiper>
+</view>
