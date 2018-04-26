@@ -244,7 +244,7 @@ Page({
     }
   },
   operateNote(res) {
-    var that = this;    
+    var that = this;
     var id = res.currentTarget.id;
     if (!this.data.searching) {
       var condition = false;
@@ -253,6 +253,9 @@ Page({
         var pullOutMenu = this.data.note[id].style.pullOutMenu;
         var pullOutDelete = this.data.note[id].style.pullOutDelete;
         condition = (pullOutDelete === 120 && pullOutMenu === 330);
+        if ((res.touches[0].pageX * SWT < 400 &&
+            pullOutMenu !== 330) ||
+            pullOutDelete !== 120) this.hideMenu();
       }else this.hideMenu();
       if (condition) {
         this.setData({
@@ -273,9 +276,6 @@ Page({
             }
           }
         });
-      } else {
-        if (res.touches[0].pageX * SWT < 425) this.hideMenu();
-        if (pullOutMenu > 0) this.hideMenu();
       }
     }else if (!!id) {
       id = id.match(/\d+/g)[0];

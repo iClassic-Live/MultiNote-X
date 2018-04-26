@@ -27,7 +27,7 @@
         wx:for="{{searching ? result : note}}"wx:key="{{item.id}}" wx:for-item="item"
         style="opacity:{{item.style.opacity}}"
         bindtouchmove="pullOutDel_Menu" bindtouchend="pullOutDel_Menu"
-        bindtap="operateNote">
+        catchtap="operateNote">
         <view class="title" style="background-color:{{item.style.bgc || 'rgba(255, 255, 255, 0.4)'}}">
           <text style="color:{{item.style.fontColor}}">{{searching ? item.title : item.note.title}}</text>
         </view>
