@@ -79,35 +79,86 @@ Page({
     var that = this;
     if (res.type === "focus") {
       this.hideMenu();
-      that.setData({ searching: true });
+      that.setData({
+        searching: true,
+        focus: true
+      });
       setTimeout(() => {
         if (!that.data.searching) that.setData({ searching: true });
       }, 100);
+      wx.showToast({
+        title: "检索记事" + (that.data.searchType ? "文本" : "标题"),
+        icon: "none"
+      });
     }else if (res.type === "input") {
       //使用简单的正则表达式对记事进行相应检索
-      this.setData({ input: res.detail.value });
+      this.setData({ input: String(res.detail.value) });
       if(!this.data.searching) this.setData({ searching: true });
-      if (!!res.detail.value) {
-        var reg = /\s/g;
-        reg.compile(res.detail.value, "g");
-        var result = [];
-        this.data.note.forEach((ele, index, origin) => {
-          if (ele.note.title.match(reg)) {
+      var reg = /'/;
+      try {
+        reg.compile(that.data.input)
+      }
+      catch (error) {
+        wx.showModal({
+          title: "读记事",
+          content: "警告：请勿输入特殊字符进行检索！",
+        });
+        reg.compile = /'/;
+        that.setData({ input: "" });
+      }
+      var result = [];
+      if (!that.data.searchType) {
+        that.data.note.forEach((ele, index, origin) => {
+          if (reg.test(ele.note.title)) {
             result.push({
               id: ele.id,
-              style: { bgc: "rgba(255, 255, 255, 0.4)" },
-              note: { title: ele.note.title }
+              title: ele.note.title
             });
           }
         });
-        this.setData({ result: result });
-      } else this.setData({ result: [] });
+      } else {
+        that.data.note.forEach((ele, index, origin) => {
+          if (reg.test(ele.note.text.content)) {
+            var content = String(ele.note.text.content);
+            if (content.length > 20) content = content.substring(0, 20);
+            result.push({
+              id: ele.id,
+              title: content
+            });
+            this.tmp = {
+              title: ele.note.title,
+              text: ele.note.text
+            }
+          }
+        });
+      }
+      if (!!that.data.input) {
+        that.setData({ result: result });
+      } else that.setData({ result: [] });
     }else if (res.type === "blur") {
-      if (!this.data.input && this.data.input !== 0) 
-      this.setData({
-        searching: false,
-        result: null
+      if (!this.data.input && this.data.input !== 0) {
+        this.setData({
+          searching: false,
+          result: null
+        });
+      }
+    }else if (res.type === "tap") {
+      this.setData({ focus: false });
+      if (this.data.searchType) {
+        this.setData({ searchType: false });
+      } else this.setData({ searchType: true});
+      wx.showToast({
+        title: "检索记事" + (that.data.searchType ? "文本" : "标题"),
+        icon: "none"
       });
+      if (this.data.searching) {
+        this.search({
+          "type": "input",
+          "detail": {
+            "value": String(this.data.input)
+          }
+        });
+      }
     }
   },
 
@@ -201,7 +252,7 @@ Page({
         id = id.match(/\d+/g)[0];
         var pullOutMenu = this.data.note[id].style.pullOutMenu;
         var pullOutDelete = this.data.note[id].style.pullOutDelete;
-        condition = pullOutDelete === 120 && pullOutMenu === 330;
+        condition = (pullOutDelete === 120 && pullOutMenu === 330);
       }else this.hideMenu();
       if (condition) {
         this.setData({
@@ -226,35 +277,49 @@ Page({
         if (res.touches[0].pageX * SWT < 425) this.hideMenu();
         if (pullOutMenu > 0) this.hideMenu();
       }
-    }else {
+    }else if (!!id) {
       id = id.match(/\d+/g)[0];
       this.setData({
         input: "",
         result: null,
         searching: false,
-        target: res.currentTarget.id,
-        ["note[" + id + "].style.bgc"]: "#f00",
-        ["note[" + id + "].style.fontColor"]: "#fff",
       });
-      setTimeout(() => {
-        that.setData({
-          ["note[" + id + "].style.bgc"]: "rgba(255, 255, 255, 0.4)",
-          ["note[" + id + "].style.fontColor"]: "#000",
+      if (!this.data.searchType) {
+        this.setData({
+          target: res.currentTarget.id,
+          ["note[" + id + "].style.bgc"]: "#f00",
+          ["note[" + id + "].style.fontColor"]: "#fff",
         });
         setTimeout(() => {
           that.setData({
-            ["note[" + id + "].style.bgc"]: "#f00",
-            ["note[" + id + "].style.fontColor"]: "#fff",
-          })
-         setTimeout(() => {
-           that.setData({
-             ["note[" + id + "].style.bgc"]: "rgba(255, 255, 255, 0.4)",
-             ["note[" + id + "].style.fontColor"]: "#000",
-           });
-         }, 250)
-        }, 250)
-      }, 250)
-    };
+            ["note[" + id + "].style.bgc"]: "rgba(255, 255, 255, 0.4)",
+            ["note[" + id + "].style.fontColor"]: "#000",
+          });
+          setTimeout(() => {
+            that.setData({
+              ["note[" + id + "].style.bgc"]: "#f00",
+              ["note[" + id + "].style.fontColor"]: "#fff",
+            })
+            setTimeout(() => {
+              that.setData({
+                ["note[" + id + "].style.bgc"]: "rgba(255, 255, 255, 0.4)",
+                ["note[" + id + "].style.fontColor"]: "#000",
+              });
+            }, 250)
+          }, 250)
+        }, 250);
+      }else {
+        var note = this.data.note[id].note
+        this.setData({
+          title: note.title,
+          text: note.text,
+          sw: "text"
+        });
+        if (note.record.length > 0) this.setData({ playback: note.record });
+        if (note.photo.length > 0) this.setData({ img: note.photo });
+        if (note.video.length > 0) this.setData({ videoSrc: note.video });
+      }
+    }
   },
   deleteNote(res) {
     var that = this;
@@ -466,6 +531,7 @@ Page({
   backToOverview(res) {
     this.setData({
       sw: "overview",
+      title: null,
       text: null,
       playback: null,
       img: null,

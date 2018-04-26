@@ -44,15 +44,38 @@ page {
         box-sizing: border-box;
         height: 7.5%;
         width: 100%;
+        display: flex;
+      }
+      .search .input {
+        flex: 1;
+        box-sizing: border-box;
+        height: 100%;
+        padding: 0 1%;
         border: 6rpx solid #cc0000;
         border-radius: 20rpx;
         background-color: rgba(255, 255, 255, 0.5);
       }
-      .search input {
-        box-sizing: border-box;
+      .search .input input {
         height: 100%;
         width: 100%;
-        padding: 0 1%;
+      }
+      .search .setSearchType {
+        box-sizing: border-box;
+        height: 100%;
+        width: 7.5vh;
+        border: 6rpx solid black;
+        border-radius: 50%;
+      }
+      .setSearchType button {
+        height: 100%;
+        width: 100%;
+        border-radius: 50%;
+        font-size: 5vh;
+        font-weight: bolder;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: rgba(255, 255, 255, 0.5);
       }
 
     /* 列表区 */
