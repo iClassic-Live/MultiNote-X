@@ -3,227 +3,259 @@ page {
   background-color: #708090;
 }
 
-#background {
-  position: absolute; 
-  height: 93%;
-  width: 100%;
-  z-index: -1;
-}
-#background swiper {
-  height: 100%;
-  width: 100%;
-}
-#background swiper-item {
-  height: 100%;
-  width: 100%;
-}
-#background image {
-  height: 100%;
-  width: 100%;
-}
-
-#mainFn {
-  position: absolute; 
-  height: 100%;
-  width: 100%;
-}
-
-.searchZone {
-  position: relative;
-  bottom: 7%;
-  height: 100%;
-  width: 100%;
-}
-.searchZone .search {
-  position: relative;
-  top: 7%;
-  height: 7%;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 0 1%;
-  border: 6rpx solid #cc0000;
-  border-radius: 20rpx;
-  background-color: rgba(255, 255, 255, 0.7);
-}
-.searchZone .search input {
-  height: 100%;
-  width: 100%;
-}
-.searchZone .result {
-  position: relative;
-  top: 7%;
-  height: 85%;
-  width: 100%;
-}
-.searchZone .result .showResult {
-  height: 60rpx;
-  width: 100%;
-  box-sizing: border-box;
-  border: 6rpx solid #00f;
-  border-radius: 15rpx;
-  background-color: rgba(255, 255, 255, 0.6);
-  margin-top: 4.5rpx;
-}
-.searchZone .result .showResult:hover {
-  box-sizing: border-box;
-  border: 6rpx solid red;
-}
-.searchZone .result .showResult input {
-  height: 100%;
-  width: 98%;
-  padding: 0 1%;
-}
 
 
-.readingZone {
-  position: relative;
-  bottom: 93%;
-  height: 85%;
-  width: 100%;
-}
-.readingZone .note {
-  height: 69rpx;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  box-sizing: border-box;
-  width: 100%;
-  border: 4.5rpx solid #8B4513;
-  border-radius: 15rpx;
-  margin-top: 4.5rpx;
-  background-color: rgba(255, 255, 255, 0.4);
-}
-.readingZone .note .title {
-  position: absolute;
-  height: 69rpx;
-  width: 100%;
-}
-.readingZone .note .title input {
-  height: 100%;
-  padding: 0 1%;
-}
-.readingZone .note .delete {
-  position: absolute;
-  box-sizing: border-box;
-  height: 69rpx;
-  border: 4.5rpx solid rgba(255, 255, 255, 0);
-  left: 0;
-  z-index: 99;
-}
-.readingZone .note .delete view {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  padding: 0 0.5em;
-  border-radius: 12.5rpx;
-  background-color: rgba(255, 0, 0, 1);
-  color: #000;
-  font-weight: bold;
-}
-.readingZone .note .menu {
-  position: absolute;
-  right: 0;
-  display: flex;
-  flex-direction: row;
-  align-items: center; 
-  height: 69rpx;
-  width: 40%;
-  z-index: 99;
-}
-.readingZone .note .menu image {
-  margin: 5rpx 10rpx 0;
-  height: 55rpx;
-  width: 55rpx;
-  line-height: 200%;
-}
-.readingZone .component {
-  height: 100%;
-  width: 100%;
-}
-.readingZone .content {
-  height: 100%;
-  width: 100%;
-}
-.readingZone .content .text {
-  height: 100%;
-  width: 100%;
-}
-.readingZone .content .text textarea {
-  box-sizing: border-box;
-  height: 100%;
-  width: 100%;
-  border: 6rpx solid black;
-  padding: 0 1%;
-  background: -webkit-gradient(linear, left top, left bottom, from(#000), color-stop(5%, rgba(255, 255, 255, 0)));
-  background-size: 100% 1em;
-  background-color: rgba(255, 255, 255, 0.4);   
-}
-.readingZone .content  .record {
-  height: 100%;
-  width: auto;
-  box-sizing: border-box;
-  border: 6rpx solid black;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(255, 255, 255, 0.4);
-}
-.readingZone .content  .record button {
-  height: 100rpx;
-  line-height: 100rpx;
-  width: 100rpx;
-  border-radius: 50%;
-}
-.readingZone .content  .photo {
-  box-sizing: border-box;
-  height: 100%;
-  width: 100%;
-  border: 6rpx solid black;
-  background-color: rgba(255, 255, 255, 0.5);
-}
-.readingZone .content  .photo > swiper {
-  height: 100%;
-  width: 100%;
-}
-.readingZone .content  .photo > swiper swiper-item {
-  height: 100%;
-  width: 100%;
-}
-.readingZone .content  .photo > swiper swiper-item image {
-  height: 100%;
-  width: 100%;
-}
-.readingZone .content .video {
-  box-sizing: border-box;
-  height: 100%;
-  width: 100%;
-  border: 6rpx solid black;
-  background-color: rgba(255, 255, 255, 0.4);
-  }
-.readingZone .content .video video {
-    width: 100%;
+  /* 背景 */
+  #background {
+    position: absolute; 
     height: 100%;
+    width: 100%;
+    z-index: -1;
+  }
+  #background swiper {
+    height: 100%;
+    width: 100%;
+  }
+  #background swiper-item {
+    height: 100%;
+    width: 100%;
+  }
+  #background image {
+    height: 100%;
+    width: 100%;
   }
 
-.creatingZone {
-  position: absolute;
-  height: 8%;
-  width: 100%;
-  bottom: 0;
-}
-.creatingZone button {
-  height: 100%;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #F0F8FF;
-  box-sizing: border-box;
-  border: 9rpx solid #708090;
-  border-radius: 0;
-  font-weight: bold;
-  letter-spacing: 0.5em;
-}
+
+
+/* 主界面  */
+  #main {
+    height: 100%;
+    width: 100%;
+  }
+
+  /* 概览区 */
+    #main .overview {
+      height: 100%;
+      width: 100%;
+    }
+
+    /* 搜索框 */
+      .overview .search {
+        box-sizing: border-box;
+        height: 7.5%;
+        width: 100%;
+        border: 6rpx solid #cc0000;
+        border-radius: 20rpx;
+        background-color: rgba(255, 255, 255, 0.5);
+      }
+      .search input {
+        box-sizing: border-box;
+        height: 100%;
+        width: 100%;
+        padding: 0 1%;
+      }
+
+    /* 列表区 */
+      .overview .list {
+        box-sizing: border-box;
+        height: 80%;
+        width: 100%;
+        padding-top: 1%;
+      }
+      .list .item {
+        position: relative;
+        height: 7.5%;
+        width: 100%;
+        margin: 0.5vw 0;
+      }
+      .item:first-of-type {
+        margin-top: 0;
+      }
+      .item .title{
+        position: absolute;
+        box-sizing: border-box;
+        height: 100%;
+        width: 100%;
+        padding: 0 1%;
+        border: 4.5rpx solid #8B4513;
+        border-radius: 15rpx;
+        background-color: rgba(255, 255, 255, 0.4);
+      }
+      .title text {
+        height: 100%;
+        width: 100%;
+        display: flex;
+        align-items: center;
+      }
+      .item .del {
+        position: absolute;
+        box-sizing: border-box;
+        left: 0;
+        height: 100%;
+        padding: 0 0.25em;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bolder;
+        border: 4.5rpx solid #8B4513;
+        border-radius: 15rpx;
+        border-top-right-radius: 0;        
+        border-bottom-right-radius: 0;    
+        border-right: none;    
+        background-color: #f00;
+      }
+      .item .menu {
+        position: absolute;
+        right: 0;
+        box-sizing: border-box;
+        height: 100%;
+        padding: 4.5rpx 0;
+        width: 45%;
+      }
+      .menu image {
+        height: 100%;
+        width: 25%;
+      }
+
+
+    /* 底部 */
+      .overview .bottom {
+        position: relative;
+        height: 12.5%;
+        width: 100%;
+        display: flex;
+        align-items: center;
+      }
+
+      .bottom .bgiChange {
+        position: absolute;
+        left: 20%;
+        height: 100%;
+        width: 12.5vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .bgiChange .bgiChange_cp {
+        height: 10vw;
+        width: 10vw;
+        background: radial-gradient(circle ,rgba(255, 255, 255, 0.4), #00f);
+        border-radius: 50%;
+      }
+      .bgiChange image {
+        position: relative;
+        height: 100%;
+        width: 100%;
+      }
+      
+      .bottom .new {
+        position: absolute;
+        right: 5%;
+        height: 100%;
+        width: 12.5vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .new image {
+        height: 75%;
+        width: 75%;
+      }
+      
+  /* 内容区 */
+    #main .content {
+      height: 100%;
+      width: 100%;
+    }
+
+    /* 头部 */
+      .content .head {
+          position: relative;
+          height: 10%;
+          width: 100%;
+      }
+
+      /* 标题栏 */
+        .head .title {
+          position: absolute;
+          left: 0;
+          height: 100%;
+          width: 80%;
+          display: flex;
+          align-items: center;
+        }
+        .head .title text {
+          flex: none;
+          height: 100%;
+          width: 3em;
+          padding-left: 0.5em;
+          font-weight: bolder;
+        }
+        .head .title textarea {
+          flex: 1;
+          max-height: 100%;
+          display: flex;
+          align-items: center;
+          font-weight: bolder;
+        }
+      /* 退出按钮 */
+        .head .exit {
+          position: absolute;
+          right: 0;
+          height: 100%;
+          width: 20%;
+        }
+        .head image {
+          height: 100%;
+          width: 100%;
+        }
+
+    /* 内容展示区 */
+      .content .show {
+        box-sizing: border-box;
+        height: 90%;
+        width: 100%;
+        border: 6rpx solid black;
+        background-color: rgba(255, 255, 255, 0.4);
+      }
+
+      /* 文本展示区 */
+        .show .text {
+          height: 100%;
+          width: 100%;
+        }
+        .text textarea {
+          height: 100%;
+          width: 100%;
+          background: -webkit-gradient(linear, left top, left bottom, from(#000), color-stop(5%, rgba(255, 255, 255, 0)));
+          background-size: 100% 1em;
+        }
+
+      /* 语音展示区 */
+        .show .voice {
+          height: 100%;
+          width: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        .voice button {
+          height: 100rpx;
+          width: 100rpx;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          border-radius: 50%;
+        }
+      
+      /* 图片展示区 */
+      .content .image_cp {
+        height: 100%;
+        width: 100%;
+      }
+
+      /* 视频展示区 */
+        .content .video_cp {
+          height: 100%;
+          width: 100%;
+        }
