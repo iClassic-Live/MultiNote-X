@@ -7,7 +7,7 @@
   </swiper>
 </scroll-view>
 
-<scroll-view id="mainFn" wx:if="{{mainFnDisplay}}" bindtouchstart="changeBackgroundImage" bindtouchend="changeBackgroundImage">
+<scroll-view id="mainFn" wx:if="{{mainFnDisplay}}">
 
   <view class="menu" wx:if="{{noting === 'menu'}}">
     <view class="title">
@@ -28,6 +28,14 @@
       </view>
       <view class="save_cancel sel" bindtap="save_cancel">
         <image src="../images/{{ ((( text.content.length > 0 || playback.length > 0) || img.length > 0) || videoSrc.length > 0) ? 'save' : 'cancel' }}.png"></image>
+      </view>
+    </view>
+    <view class="bgiChange">
+      <view class="bgiChange_cp">
+        <image src="../images/bgiChange.png" style="left:{{ 50 * bgiChange }}%" 
+          bindtouchstart="backgroundImageChange" 
+          bindtouchmove="backgroundImageChange"
+          bindtouchend="backgroundImageChange"></image>
       </view>
     </view>
   </view>

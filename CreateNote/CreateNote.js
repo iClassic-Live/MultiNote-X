@@ -167,10 +167,18 @@ Page({
             var dateFn = new Date();
             return ("记事 "
               + dateFn.getFullYear()
-              + dateFn.getDate()
-              + dateFn.getHours()
-              + dateFn.getMinutes()
-              + dateFn.getSeconds());
+              + (dateFn.getMonth() + 1 < 10 ?
+                 "0" + (dateFn.getMonth() + 1) : 
+                  dateFn.getMonth() + 1)
+              +( dateFn.getDate() < 10 ? 
+                  "0" + dateFn.getDate() : dateFn.getDate())
+              + (dateFn.getHours() < 10 ?
+                  "0" + dateFn.getHours() : dateFn.getHours())
+              + (dateFn.getMinutes() < 10 ?
+                  "0" + dateFn.getMinutes() : dateFn.getMinutes())
+              + (dateFn.getSeconds() < 10 ?
+                  "0" + dateFn.getSeconds() : dateFn.getSeconds())
+              );
           })(),
           text: {
             content: "",
@@ -305,11 +313,17 @@ Page({
             if (content.length !== " ") content = "记事 ";
             item.note.title = content
               + dateFn.getFullYear()
-              + dateFn.getMonth()
-              + dateFn.getDate()
-              + dateFn.getHours()
-              + dateFn.getMinutes()
-              + dateFn.getSeconds(); 
+              + (dateFn.getMonth() + 1 < 10 ?
+                "0" + (dateFn.getMonth() + 1) :
+                dateFn.getMonth() + 1)
+              + (dateFn.getDate() < 10 ?
+                "0" + dateFn.getDate() : dateFn.getDate())
+              + (dateFn.getHours() < 10 ?
+                "0" + dateFn.getHours() : dateFn.getHours())
+              + (dateFn.getMinutes() < 10 ?
+                "0" + dateFn.getMinutes() : dateFn.getMinutes())
+              + (dateFn.getSeconds() < 10 ?
+                "0" + dateFn.getSeconds() : dateFn.getSeconds());
           }
       } else if (item.note.title.length > 20) {
         item.note.title = item.note.title.substring(0, 20);
@@ -356,7 +370,7 @@ Page({
   textContent(res) {
     if (res.type === "input") {
       item.note.text.content = res.detail.value;
-      this.setData({ text: item.note.text });
+      this.setData({ ["text.content"]: item.note.text.content });
     } else if (res.type === "blur") {
       if (res.detail.value.length > 0 && !res.detail.value.trim()) {
         item.note.text.content = "";
@@ -1193,7 +1207,7 @@ Page({
     var that = this;
     var canISave = false;
     if ((item.note.title.length > 0) &&
-         ((item.note.text.content > 0
+         ((item.note.text.content.length > 0
          || item.note.record.length > 0)
          || item.note.video.length > 0)) canISave = true;
     //操作记事保存与取消时关闭已开启的所有记事的权限以免误操作
@@ -1354,11 +1368,34 @@ Page({
     }
   },
 
-  backToMenu(res) {
-    if (this.data.noting === "voice") {
-      innerAudioContext.stop();
-      
+  backgroundImageChange(res) {
+    if (res.type === "touchstart") {
+      this.anchor = res.changedTouches[0].pageX;
+    } else if (res.type === "touchmove") {
+      var moveDistance = (res.changedTouches[0].pageX - this.anchor) * SWT;
+      if (Math.abs(moveDistance) > 37.5 && !this.tagA) {
+        this.tagA = true;
+        if (moveDistance > 0) {
+          this.setData({ bgiChange: 1 });
+        } else this.setData({ bgiChange: -1 });
+      }
+    } else if (res.type === "touchend") {
+      this.tagA = false;
+      delete this.anchor;
+      if (this.data.bgiChange === 1) {
+        if (this.data.current + 1 < this.data.bgiQueue.length) {
+          this.setData({ current: this.data.current + 1 });
+        }
+      } else if (this.data.bgiChange === -1 && this.data.current - 1 >= 0) {
+        this.setData({ current: this.data.current - 1 });
+      }
+      wx.setStorageSync("bgiCurrent", this.data.current);
+      this.setData({ bgiChange: 0 });
     }
+  },
+
+  backToMenu(res) {
+    if (this.data.noting === "voice") innerAudioContext.stop();
     this.setData({ noting: "menu" });
     if (this.data.imgCurrent !== 0) this.setData({ imgCurrent: 0 });
   },

@@ -59,23 +59,6 @@ var lockB = true; //滑动达到指定值后的锁
       },
 
     /* 自定义用户交互逻辑 */
-      /* 背景图切换 */
-      changeBackgroundImage(res) {
-        if (res.type === "touchstart") {
-          this.anchor = res.touches[0].pageX
-        } else if (res.type === "touchend") {
-          var moveDistance = res.changedTouches[0].pageX - this.anchor;
-          if (Math.abs(moveDistance) >= 750 / SWT / 3) {
-            if (moveDistance < 0 && this.data.current < getApp().globalData.bgiQueue.length - 1) {
-              this.setData({ current: this.data.current + 1 });
-              wx.setStorageSync("bgiCurrent", this.data.current);
-            } else if (moveDistance > 0 && !!this.data.current) {
-              this.setData({ current: this.data.current - 1 });
-              wx.setStorageSync("bgiCurrent", this.data.current);
-            }
-          }
-        }
-      },
 
       /* 开始使用 */
       //MultiNote开始使用按钮，当用户缓存中有记事时则跳转到读记事页，否则跳转到写记事页

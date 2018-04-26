@@ -102,6 +102,27 @@ page {
     height: 100%;
     width: 100%;
   }
+  .menu .bgiChange {
+    position: absolute;
+    bottom: 0;
+    left: 20%;
+    height: 12.5%;
+    width: 12.5vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .bgiChange .bgiChange_cp {
+    height: 10vw;
+    width: 10vw;
+    background: radial-gradient(circle ,rgba(255, 255, 255, 0.4), #00f);
+    border-radius: 50%;
+  }
+  .bgiChange_cp image {
+    position: relative;
+    height: 100%;
+    width: 100%;
+  }
 
   .noting {
     height: 100%;
@@ -136,9 +157,13 @@ page {
     height: 85%;
     width: 100%;
     padding: 0 1%;
+    background-color: rgba(255, 255, 255, 0.4);
+  }
+  .noting .creating .text .writing textarea {
+    height: 100%;
+    width: 100%;
     background: -webkit-gradient(linear, left top, left bottom, from(#000), color-stop(5%, rgba(255, 255, 255, 0)));
     background-size: 100% 1em;
-    background-color: rgba(255, 255, 255, 0.4);
   }
   .noting .creating .text .font {
     position: relative;
