@@ -63,7 +63,7 @@
 
     <view class="head">
       <view class="title">
-       <text class="tag">标题：</text>
+       <text class="tag">来自：</text>
        <textarea disabled="true">{{title}}</textarea>
       </view>
       <view class="exit">

@@ -38,7 +38,7 @@ Page({
       ele.style = new Object();
       ele.style.opacity = 1;
       ele.style.pullOutDelete = 120;
-      ele.style.pullOutMenu = 325;
+      ele.style.pullOutMenu = 330;
       ele.style.bgc = "rgba(255, 255, 255, 0.5)";
     });
     this.setData({ note: note });
@@ -127,17 +127,17 @@ Page({
         var moveDistance = (res.changedTouches[0].pageX - anchor[1][0]) * SWT;
         if ((pullOutDelete >= 0 && pullOutDelete <= 120) 
              && (moveDistance > 0 && Math.abs(moveDistance) < 120)) {
-          if (pullOutMenu !== 325) {
-            this.setData({ ["note[" + index + "].style.pullOutMenu"]: 325 });
+          if (pullOutMenu !== 330) {
+            this.setData({ ["note[" + index + "].style.pullOutMenu"]: 330 });
           }
           this.setData({ ["note[" + index + "].style.pullOutDelete"]: 120 - Math.abs(moveDistance) });
         }
-        if ((pullOutMenu >= 0 && pullOutMenu <= 325) 
-             && (moveDistance < 0 && Math.abs(moveDistance) < 325)) {
+        if ((pullOutMenu >= 0 && pullOutMenu <= 330) 
+             && (moveDistance < 0 && Math.abs(moveDistance) < 330)) {
           if (pullOutDelete !== 120) {
             this.setData({ ["note[" + index + "].style.pullOutDelete"]: 120 });
           }
-          this.setData({ ["note[" + index + "].style.pullOutMenu"]: 325 - Math.abs(moveDistance) });
+          this.setData({ ["note[" + index + "].style.pullOutMenu"]: 330 - Math.abs(moveDistance) });
         }
       }
     } else if (res.type === "touchend" && this.tagB) {
@@ -167,7 +167,7 @@ Page({
             });
             if (that.data.note[index].style.pullOutDelete < 120) showOff();
           }
-          if (style.pullOutMenu > 0 && style.pullOutMenu < 243) {
+          if (style.pullOutMenu > 0 && style.pullOutMenu < 247.5) {
             that.data.note[index].style.pullOutMenu -= 25;
             if (that.data.note[index].style.pullOutMenu < 0) {
               that.data.note[index].style.pullOutMenu = 0;
@@ -179,14 +179,14 @@ Page({
             if (that.data.note[index].style.pullOutMenu > 0) showOff();
           } else {
             that.data.note[index].style.pullOutMenu += 25;
-            if (that.data.note[index].style.pullOutMenu > 325) {
-              that.data.note[index].style.pullOutMenu = 325;
+            if (that.data.note[index].style.pullOutMenu > 330) {
+              that.data.note[index].style.pullOutMenu = 330;
             }
             that.setData({
             ["note[" + index + "].style.pullOutMenu"]:
               that.data.note[index].style.pullOutMenu
             });
-            if (that.data.note[index].style.pullOutMenu < 325) showOff();
+            if (that.data.note[index].style.pullOutMenu < 330) showOff();
           }
         }, 15)
       })();
@@ -201,7 +201,7 @@ Page({
         id = id.match(/\d+/g)[0];
         var pullOutMenu = this.data.note[id].style.pullOutMenu;
         var pullOutDelete = this.data.note[id].style.pullOutDelete;
-        condition = pullOutDelete === 120 && pullOutMenu === 325;
+        condition = pullOutDelete === 120 && pullOutMenu === 330;
       }else this.hideMenu();
       if (condition) {
         this.setData({
@@ -263,7 +263,7 @@ Page({
     (function tips () {
       setTimeout(() => {
         if (that.data.note[index].style.pullOutDelete !== 120
-          || that.data.note[index].style.pullOutMenu !== 325) {
+          || that.data.note[index].style.pullOutMenu !== 330) {
           tips();
         } else {
           that.setData({
@@ -397,7 +397,7 @@ Page({
     this.data.note.forEach((ele, index) => {
       if (parseInt(item) !== index) {
         if (ele.style.pullOutDelete < 120) unhiddenQueue.push({ tag: "pullOutDelete", index: index });
-        if (ele.style.pullOutMenu < 325) unhiddenQueue.push({ tag: "pullOutMenu", index: index });
+        if (ele.style.pullOutMenu < 330) unhiddenQueue.push({ tag: "pullOutMenu", index: index });
       }
     });
     unhiddenQueue.forEach(ele => {
@@ -420,14 +420,14 @@ Page({
         (function hideMenu() {
           setTimeout(() => {
             that.data.note[ele.index].style.pullOutMenu += 25;
-            if (that.data.note[ele.index].style.pullOutMenu > 325) {
-              that.data.note[ele.index].style.pullOutMenu = 325;
+            if (that.data.note[ele.index].style.pullOutMenu > 330) {
+              that.data.note[ele.index].style.pullOutMenu = 330;
             }
             that.setData({
             ["note[" + ele.index + "]style.pullOutMenu"]:
               that.data.note[ele.index].style.pullOutMenu
             });
-            if (that.data.note[ele.index].style.pullOutMenu < 325) hideMenu();
+            if (that.data.note[ele.index].style.pullOutMenu < 330) hideMenu();
           }, 15);
         })()
       }
@@ -581,7 +581,7 @@ Page({
     }else if (res.type === "touchend") {
       this.tag = false;
       var moveDistance = (res.changedTouches[0].pageY - anchor[2][0]) * SWT;
-      if (Math.abs(moveDistance) >= 300 && new Date().getTime() - anchor[2][1] < 2500) {
+      if (Math.abs(moveDistance) >= 187.5 && new Date().getTime() - anchor[2][1] < 2500) {
         var whichShowNow = this.whichShowNow;
         var whichCanShow = this.whichCanShow;
         var index = whichCanShow.indexOf(whichShowNow);

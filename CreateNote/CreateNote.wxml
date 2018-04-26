@@ -11,7 +11,10 @@
 
   <view class="menu" wx:if="{{noting === 'menu'}}">
     <view class="title">
+    标题：
+    <view class="input">
       <input value="{{title}}" placeholder="{{titleDefault}}" bindfocus="titleContent" bindinput="titleContent" bindblur="titleContent"></input>
+    </view>
     </view>
     <view class="selection">
       <view class="text sel" bindtap="getTextFn" bindlongpress="getTextFn" style="border:9rpx solid {{text.content.length > 0 ? 'red' : 'green'}}">

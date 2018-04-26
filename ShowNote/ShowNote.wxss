@@ -166,6 +166,7 @@ page {
     #main .content {
       height: 100%;
       width: 100%;
+      background-color: rgba(255, 255, 255, 0.4);
     }
 
     /* 头部 */
@@ -216,7 +217,6 @@ page {
         height: 90%;
         width: 100%;
         border: 6rpx solid black;
-        background-color: rgba(255, 255, 255, 0.4);
       }
 
       /* 文本展示区 */

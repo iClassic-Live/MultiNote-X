@@ -48,12 +48,28 @@ page {
     height: 7%;
     width: 100%;
     box-sizing: border-box;
-    padding: 0 1%;
+    display: flex;
+    align-items: center;
+    color: #cc0000;
+    font-weight: bolder;
+    text-indent: 0.5em;
+  }
+  .menu .title text {
+    flex: none;
+    height: 100%;
+  }
+  .menu .title .input {
+    flex: 1;
+    box-sizing: border-box;
+    height: 100%;
+    padding: 0 0.25em;
     border: 6rpx solid #cc0000;
     border-radius: 20rpx;
+    color: #000;
+    font-weight: normal;
     background-color: rgba(255, 255, 255, 0.7);
   }
-  .menu .title input {
+  .input input {
     height: 100%;
     width: 100%;
   }
