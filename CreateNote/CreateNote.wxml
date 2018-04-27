@@ -62,7 +62,7 @@
         <view class="record ele">
           <view class="rec_component" style="transform: rotate({{recording * 3.6}}deg);" >
             <view class="rec_pointer"></view>
-            <button animation="{{breathingEffection}}" bindtouchstart="startRecord" bindtouchend="stopRecord"></button>
+            <button disabled="true" animation="{{breathingEffection}}" bindtouchstart="startRecord" bindtouchend="stopRecord"></button>
           </view>
         </view>
         <view class="playback ele">

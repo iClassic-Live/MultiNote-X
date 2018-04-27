@@ -80,67 +80,59 @@ Page({
     //监测是否获取了设备的录音权限、相机权限和保存到相册的权限
     wx.getSetting({
       success(res) {
-        function scopeRecord() {
-          wx.authorize({
-            scope: "scope.record",
-            fail(e) {
+        function failure(prop) {
+          var content;
+          switch (prop) {
+            case "scope.record": {
               getRecordAccess = false;
-              wx.showToast({
-                title: "未获取录音权限",
-                image: "../images/warning.png",
-                mask: true
-              });
-            },
-            complete(e) { if (!res.authSetting["scope.camera"]) scopeCamera(); }
-          });
-        }
-        function scopeCamera() {
-          wx.authorize({
-            scope: "scope.camera",
-            fail(e) {
+              content = "未获取录音权限";
+              break;
+            };
+            case "scope.camera": {
               getCameraAccess = false;
-              wx.showToast({
-                title: "未获取相机权限",
-                image: "../images/warning.png",
-                mask: true
-              });
-            },
-            complete(e) { if (!res.authSetting["scope.writePhotosAlbum"]) scopeAlbum(); }
+              content = "未获取相机权限";
+              break;
+            };
+            case "scope.writePhotosAlbum": {
+              getAlbumAccess = false;
+              content = "将无法写入相册";
+              break;
+            };
+          }
+          wx.showToast({
+            title: content,
+            image: "../images/warning.png"
           });
         }
-        function scopeAlbum() {
-          wx.authorize({
-            scope: "scope.writePhotosAlbum",
-            fail(res) {
-              getAlbumAccess = false;
-              wx.showToast({
-                title: "无法存图到相册",
-                image: "../images/warning.png",
-                mask: true
+        if (Object.keys(res.authSetting).length === 3) {
+          for (let prop in res.authSetting) {
+            if (!res.authSetting[prop]) {
+              wx.authorize({
+                scope: prop,
+                fail(res) { wx.openSetting({ fail(res) { failure(prop) } }); }
+              });
+            }
+          }
+        }else {
+          var scopeQueue = ["scope.record", "scope.camera", "scope.writePhotosAlbum"];
+          scopeQueue.forEach(ele => {
+            if (ele in res.authSetting === false) {
+              wx.authorize({
+                scope: ele,
+                fail(res) { wx.openSetting({ fail(res) { failure(ele) } }); }
               });
             }
           });
         }
-        if (!res.authSetting["scope.record"]) {
-          scopeRecord();
-        } else if (!res.authSetting["scope.camera"]) {
-          scopeCamera();
-        } else if (!res.authSetting["scope.writePhotosAlbum"]) scopeAlbum();
       },
       fail(res) {
-        var note = wx.getStorageSync("note");
-        if (note instanceof Array && !!note.length) {
-          var content = "将返回读记事页！"
-        } else var content = "将返回启动页！"
+        getRecordAccess = false;
+        getCameraAccess = false;
+        getAlbumAccess = false;
         wx.showModal({
           title: "写记事",
-          content: "无法检测相关权限获取情况，" + content,
-          showCancel: false,
-          complete(res) {
-            if (note instanceof Array && !!note.length) {
-              wx.redirectTo({ url: "../ShowNote/ShowNote" });
-            } else wx.redirectTo({ url: "../Home/Home" });
-          }
+          content: "警告：无法读取权限获取信息，录音、相机和写入相册功能将不可用！",
+          showCancel: false
         });
       }
     });
@@ -508,9 +500,8 @@ Page({
   },
   //开始语音记事
   startRecord(res) {
-    if (this.data.photoPreviewAccess) this.setData({ photoPreviewAccess: false });
     var that = this;
-    if (canIRecord) {
+    if (canIRecord && getRecordAccess) {
       startRecord = setTimeout(() => {
         recorderManager.start({
           duration: 120000,
@@ -572,56 +563,66 @@ Page({
           });
         }, 120000);
       }, 200);
+    } else {
+      setTimeout(() => {
+        wx.showModal({
+          title: "语音记事",
+          content: "警告：没有录音权限，无法进行语音记事！",
+          showCancel: false
+        });
+      }, 500);
     }
   },
   //停止语音记事
   stopRecord(res) {
-    var that = this;
-    clearTimeout(startRecord);
-    recorderManager.stop();
-    if (!canIRecord && item.note.record.length < 5) {
-      clearTimeout(recordTimer);
+    if (getRecordAccess) {
+      var that = this;
+      clearTimeout(startRecord);
       recorderManager.stop();
-      recorderManager.onStop((res) => {
-        console.log("用户成功进行语音记事");
-        var length = item.note.record.length;
-        var logs = {
-          record_index: length, url: res.tempFilePath,
-          duration: new Date().getTime() - that.recordDuration
-        };
-        item.note.record.push(logs);
-        console.log("语音记事暂存，路径为", item.note.record[length].url);
-        that.data.playback = JSON.parse(JSON.stringify(item.note.record));
-        console.log(that.data.playback, item.note.record);
-        that.data.playback.forEach(ele => { ele["opacity"] = 1; });
-        console.log(that.data.playback, item.note.record);
-        that.setData({ playback: that.data.playback });
-        canIRecord = true;
-        //截停呼吸效果动画
-        that.breathingEffection("stop");
-        that.progressBar("stop");
-        if (item.note.record.length >= 5) {
-          canIRecord = false;
-          wx.vibrateLong();
-          that.setData({ recordAccess: false });          
-          wx.showToast({
-            title: "语音记事已满",
-            image: "../images/warning.png",
-            mask: true
-          });
-        } else wx.vibrateShort();
-      })
-    } else if (item.note.record.length < 5) {
-      wx.showModal({
-        title: "语音记事",
-        content: "长按开始录音，松手完成录音",
-        showCancel: false
-      });
-    } else {
-      wx.showToast({
-        title: "语音记事已满",
-        image: "../images/warning.png"
-      });
+      if (!canIRecord && item.note.record.length < 5) {
+        clearTimeout(recordTimer);
+        recorderManager.stop();
+        recorderManager.onStop((res) => {
+          console.log("用户成功进行语音记事");
+          var length = item.note.record.length;
+          var logs = {
+            record_index: length, url: res.tempFilePath,
+            duration: new Date().getTime() - that.recordDuration
+          };
+          item.note.record.push(logs);
+          console.log("语音记事暂存，路径为", item.note.record[length].url);
+          that.data.playback = JSON.parse(JSON.stringify(item.note.record));
+          console.log(that.data.playback, item.note.record);
+          that.data.playback.forEach(ele => { ele["opacity"] = 1; });
+          console.log(that.data.playback, item.note.record);
+          that.setData({ playback: that.data.playback });
+          canIRecord = true;
+          //截停呼吸效果动画
+          that.breathingEffection("stop");
+          that.progressBar("stop");
+          if (item.note.record.length >= 5) {
+            canIRecord = false;
+            wx.vibrateLong();
+            that.setData({ recordAccess: false });
+            wx.showToast({
+              title: "语音记事已满",
+              image: "../images/warning.png",
+              mask: true
+            });
+          } else wx.vibrateShort();
+        })
+      } else if (item.note.record.length < 5) {
+        wx.showModal({
+          title: "语音记事",
+          content: "长按开始录音，松手完成录音",
+          showCancel: false
+        });
+      } else {
+        wx.showToast({
+          title: "语音记事已满",
+          image: "../images/warning.png"
+        });
+      }
     }
   },
   //语音记事的返听与删除

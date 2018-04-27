@@ -258,6 +258,7 @@ Page({
             pullOutDelete !== 120) this.hideMenu();
       }else this.hideMenu();
       if (condition) {
+        this.hideMenu();
         this.setData({
           ["note[" + id + "].style.bgc"]: "#f00",
           ["note[" + id + "].style.fontColor"]: "#fff"
@@ -582,70 +583,151 @@ Page({
   getImageInfo(res) {
     var that = this;
     var index = res.currentTarget.id.match(/\d+/g)[0];
-    wx.showModal({
-      title: "读记事",
-      content: "是否保存当前图片到本地？",
+    function saveImage () {
+      wx.showModal({
+        title: "读记事",
+        content: "是否保存当前图片到本地？",
+        success(res) {
+          if (res.confirm) {
+            wx.saveImageToPhotosAlbum({
+              filePath: that.data.img[index].url,
+              success(res) {
+                wx.showToast({
+                  title: "保存图片成功！",
+                  image: "../images/success.png"
+                });
+              },
+              fail(res) {
+                wx.showToast({
+                  title: "保存图片失败！",
+                  image: "../images/error.png"
+                });
+              }
+            })
+          }
+        }
+      });
+    }
+    function failure() {
+      wx.showModal({
+        title: "读记事",
+        content: "警告：没有保存到相册的权限，无法保存图片到本地！",
+        showCancel: false
+      });
+    }
+    wx.getSetting({
       success(res) {
-        if (res.confirm) {
-          wx.saveImageToPhotosAlbum({
-            filePath: that.data.img[index].url,
-            success(res) {
-              wx.showToast({
-                title: "保存图片成功！",
-                image: "../images/success.png"
+        if (!res.authSetting['scope.writePhotosAlbum']) {
+          wx.openSetting();
+          wx.authorize({
+            scope: 'scope.writePhotosAlbum',
+            success(res) { saveImage(); },
+            fail(res) {
+              wx.openSetting({
+                success(res) {
+                  if (res.authSetting['scope.writePhotosAlbum']) {
+                    saveImage();
+                  } else failure();
+                },
+                fail(res) { failure(); }
               });
             },
-            fail(res) {
-              wx.showToast({
-                title: "保存图片失败！",
-                image: "../images/error.png"
-              });
+            complete(res) {
+              console.log("authorize");
             }
-          })
-        }
+          });
+        }else saveImage();
+      },
+      fail(res) {
+        wx.showModal({
+          title: "读记事",
+          content: "警告：无法读取权限获取信息！",
+          showCancel: false
+        });
       }
     });
   },
   getVideoInfo(res) {
-    var that = this;
-    wx.showModal({
-      title: "读记事",
-      content: "是否保存当前视频到本地？",
+    function saveVideo() {
+      var that = this;
+      wx.showModal({
+        title: "读记事",
+        content: "是否保存当前视频到本地？",
+        success(res) {
+          if (res.confirm) {
+            wx.saveImageToPhotosAlbum({
+              filePath: that.data.videoSrc,
+              success(res) {
+                wx.showToast({
+                  title: "保存视频成功！",
+                  image: "../images/success.png"
+                });
+              },
+              fail(res) {
+                wx.showToast({
+                  title: "保存视频失败！",
+                  image: "../images/error.png"
+                });
+              }
+            })
+          }
+        }
+      });
+    }
+    function failure() {
+      wx.showModal({
+        title: "读记事",
+        content: "警告：没有保存到相册的权限，无法保存视频到本地！",
+        showCancel: false
+      });
+    }
+    wx.getSetting({
       success(res) {
-        if (res.confirm) {
-          wx.saveImageToPhotosAlbum({
-            filePath: that.data.videoSrc,
-            success(res) {
-              wx.showToast({
-                title: "保存视频成功！",
-                image: "../images/success.png"
+        if (!res.authSetting['scope.writePhotosAlbum']) {
+          wx.authorize({
+            scope: 'scope.writePhotosAlbum',
+            success(res) { saveVideo(); },
+            fail(res) {
+              wx.openSetting({
+                success(res) {
+                  if (res.authSetting['scope.writePhotosAlbum']) {
+                    saveVideo();
+                  } else failure();
+                },
+                fail(res) { failure(); }
               });
             },
-            fail(res) {
-              wx.showToast({
-                title: "保存视频失败！",
-                image: "../images/error.png"
-              });
+            complete(res) {
+              console.log("authorize");
             }
-          })
-        }
+          });
+        } else saveVideo();
+      },
+      fail(res) {
+        wx.showModal({
+          title: "读记事",
+          content: "警告：无法读取权限获取信息！",
+          showCancel: false
+        });
       }
     });
   },
   jumpToAnother(res) {
     if (res.type === "touchmove" && !this.tag) {
-      this.tag = true;
+      this.tagA = true;
+      this.tagB = true;
       var whichShowNow = this.data.sw; //正在展示的记事类型
       this.whichShowNow = whichShowNow;
       var whichCanShow = [];
       if (this.data.text) whichCanShow.push("text");
       if (this.data.playback) whichCanShow.push("voice");
-      if (this.data.img) whichCanShow.push("image");
+      if (this.data.img) whichCanShow.push("Video");
       if (this.data.videoSrc) whichCanShow.push("video");
       this.whichCanShow = whichCanShow;
       anchor[2] = [res.touches[0].pageY, new Date().getTime()];
-    }else if (res.type === "touchend") {
-      this.tag = false;
+    }else if (res.type === "touchend" && this.tagB) {
+      this.tagA = false;
+      this.tagB = false;
       var moveDistance = (res.changedTouches[0].pageY - anchor[2][0]) * SWT;
       if (Math.abs(moveDistance) >= 187.5 && new Date().getTime() - anchor[2][1] < 2500) {
         var whichShowNow = this.whichShowNow;
