@@ -78,10 +78,9 @@ Page({
   },
 
   /* 自定义用户交互逻辑 */
+  
 
-  /* 背景图切换区 */
-  //背景图切换
-
+  //记事检索功能
   search(res) {
     var that = this;
     if (res.type === "focus") {
@@ -169,6 +168,7 @@ Page({
     }
   },
 
+  //列表项各子项下删除按钮和菜单栏的拉动操作
   pullOutDel_Menu(res) {
     var that = this;
     var index = res.currentTarget.id;
@@ -250,6 +250,7 @@ Page({
       })();
     }
   },
+  //列表项各子项下的删除按钮、菜单栏复位操作、记事修改操作和检索时的相应提示操作
   operateNote(res) {
     var that = this;
     var id = res.currentTarget.id;
@@ -329,6 +330,7 @@ Page({
       }
     }
   },
+  //列表项各子项下的删除操作
   deleteNote(res) {
     var that = this;
     var index = res.currentTarget.id.match(/\d+/g)[0];
@@ -431,6 +433,7 @@ Page({
       }
     });
   },
+  //列表项各子项下的记事内容获取操作
   getContent(res) {
     var label = res.currentTarget.id;
     var index = label.match(/\d+/g)[0];
@@ -462,6 +465,7 @@ Page({
       });
     }
   },
+  //当前页API：复位所有未复位的删除按钮和菜单栏
   hideMenu(item) {
     var that = this;
     var unhiddenQueue = [];
@@ -505,6 +509,7 @@ Page({
     });
   },
   
+  //背景图的切换
   backgroundImageChange(res) {
     if (res.type === "touchstart") {
       anchor[0] = res.changedTouches[0].pageX;
@@ -530,10 +535,12 @@ Page({
       this.setData({ bgiChange: 0 });
     }
   },
+  //记事的新建
   createNote(res) {
     wx.redirectTo({ url: "../CreateNote/CreateNote" })
   },
 
+  //返回概览区
   backToOverview(res) {
     this.setData({
       sw: "overview",
@@ -545,6 +552,7 @@ Page({
     });
     innerAudioContext.stop();
   },
+  //记事文本的操作
   getTextInfo(res) {
     var that = this;
     wx.setClipboardData({
@@ -563,6 +571,7 @@ Page({
       }
     });
   },
+  //记事语音的操作
   getVoiceInfo(res) {
     var that = this;
     var index = res.currentTarget.id.match(/\d+/g)[0];
@@ -595,6 +604,7 @@ Page({
     innerAudioContext.autoplay = "true";
     innerAudioContext.src = this.data.voice[index].url;
   },
+  //记事图片的操作
   getImageInfo(res) {
     var that = this;
     var index = res.currentTarget.id.match(/\d+/g)[0];
@@ -662,6 +672,7 @@ Page({
       }
     });
   },
+  //记事视频的操作
   getVideoInfo(res) {
     function saveVideo() {
       var that = this;
@@ -727,6 +738,7 @@ Page({
       }
     });
   },
+  //记事间的快速跳转
   jumpToAnother(res) {
     if (res.type === "touchmove" && !this.tag) {
       this.tagA = true;
