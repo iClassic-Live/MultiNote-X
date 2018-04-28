@@ -35,7 +35,7 @@ Page({
     var note = wx.getStorageSync("note") || [];
     note.forEach((ele, index, origin) => {
       ele.id = index;
-      ele.note.voice.forEach((ele, id) => {
+      ele.note.record.forEach((ele, id) => {
         ele.record_index = id;
         ele.opacity = 1;
       });
