@@ -203,6 +203,12 @@ Page({
           wx.hideToast();
           that.breathingEffection("stop");
           that.progressBar("stop");
+          if (res.duration >= 120000) {
+            wx.showToast({
+              title: "录音限时两分钟",
+              image: "../images/warning.png"
+            });
+          }
           if (res.duration > 500) {
             item.note.record.push({
               url: res.tempFilePath,
@@ -613,13 +619,16 @@ Page({
                 if (that.data.playback[index].opacity <= 0) {
                   wx.hideLoading();
                   item.note.record.splice(index, 1);
-                  if (item.note.record.length > 0) {
-                    item.note.record.forEach((ele, id, origin) => { ele.record_index = id; });
-                    that.setData({ playback: item.note.record });
-                    if (item.note.record.length < 5) canIRecord = true;
-                  } else {
-                    that.setData({ playback: [] });
-                  }
+                  that.data.playback = [];
+                  item.note.record.forEach((ele, id) => {
+                    that.data.playback.push({
+                      record_index: id,
+                      url: ele.url,
+                      duration: ele.url,
+                      opacity: 1
+                    })
+                  })
+                  that.setData({ playback: that.data.playback });
                   wx.showToast({
                     title: "删除成功！",
                     image: "../images/success.png",
@@ -680,7 +689,7 @@ Page({
       (function recording() {
         timerC = setTimeout(() => {
           that.setData({ recording: (new Date().getTime() - start) / 1200 });
-          if ((new Date().getTime() - that.recordDuration) >= 120000) {
+          if ((new Date().getTime() - start) >= 120000) {
             that.setData({ recording: 0 });
           } else recording(tag);
         }, 25);
