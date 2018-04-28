@@ -676,9 +676,10 @@ Page({
   progressBar(tag) {
     var that = this;
     if (tag === "start") {
+      var start = new Date().getTime();
       (function recording() {
         timerC = setTimeout(() => {
-          that.setData({ recording: (new Date().getTime() - that.recordDuration) / 1200 });
+          that.setData({ recording: (new Date().getTime() - start) / 1200 });
           if ((new Date().getTime() - that.recordDuration) >= 120000) {
             that.setData({ recording: 0 });
           } else recording(tag);
