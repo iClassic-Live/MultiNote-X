@@ -435,6 +435,7 @@ Page({
   },
   //列表项各子项下的记事内容获取操作
   getContent(res) {
+    var that = this;
     var label = res.currentTarget.id;
     var index = label.match(/\d+/g)[0];
     label = label.slice(0, label.indexOf("_"));
@@ -445,14 +446,34 @@ Page({
     }else var condition = this.data.note[index].note[label].length > 0;
     if (condition) {
       this.hideMenu();
+      if (label === "record") label = "voice";
+      if (label === "photo") label = "image";
       this.setData({
         sw: label,
         title: this.data.note[index].note.title,
       });
       var note = this.data.note[index].note;
       if (note.text.content.length > 0) this.setData({ text: note.text });
-      if (note.record.length > 0) this.setData({ playback: note.record });
-      if (note.photo.length > 0) this.setData({ img: note.photo });
+      if (note.record.length > 0) {
+        note.record.forEach((ele, id) => {
+          that.data.playback.push({
+            record_index: id,
+            url: ele.url,
+            duratoin: ele.duration,
+            opacity: 1
+          })
+        });
+        that.setData({ playback: note.record });
+      }
+      if (note.photo.length > 0) {
+        note.photo.forEach((ele, id) => {
+          that.data.playback.push({
+            photo_index: id,
+            url: ele.url
+          })
+        });
+        that.setData({ playback: note.photo });
+      }
       if (note.video.length > 0) this.setData({ video: note.video });
     }else {
       if (label === "record") label = "voice";
