@@ -7,7 +7,7 @@
   </swiper>
 </scroll-view>
 
-<scroll-view id="mainFn" wx:if="{{mainFnDisplay}}">
+<scroll-view id="mainFn" wx:if="{{ !sw }}">
 
   <view class="menu" wx:if="{{noting === 'menu'}}">
     <view class="title">
@@ -45,7 +45,7 @@
 
   <view class="noting" wx:if="{{noting !== 'menu'}}">
     <view class="exit">
-        <image src="../images/{{ (noting === 'text' || noting === 'voice') ? noting : noting === 'photo' ? 'image': 'VCR' }}.png" bindtap="backToMenu"></image>
+        <image src="../images/{{ (noting === 'text' || noting === 'voice') ? noting : noting === 'photo' ? 'image': 'video' }}.png" bindtap="backToMenu"></image>
     </view>
     <view class="creating">
       <view class="text sel" wx:if="{{noting === 'text'}}">
@@ -78,7 +78,7 @@
         </swiper>
       </view>
       <view class="video sel" wx:if="{{noting === 'video'}}">
-        <video src="{{videoSrc}}"></video>
+        <video src="{{videoSrc}}" bindlongpress="videoPreview"></video>
       </view>
     </view>
   </view>
@@ -86,7 +86,7 @@
 </scroll-view>
 
 
-<view id="cameraFn" wx:if="{{cameraFnDisplay}}">
+<view id="cameraFn" wx:if="{{ sw }}">
   <camera style="display:{{!ifPreview ? 'block' : 'none'}}" flash="{{flash}}" device-position="{{camSet}}">
     <cover-view class="top">
       <cover-view class="goback" wx:if="{{!shootNow}}" bindtap="goback">
