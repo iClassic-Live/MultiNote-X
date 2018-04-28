@@ -96,10 +96,10 @@ Page({
         title: "检索记事" + (that.data.searchType ? "文本" : "标题"),
         icon: "none"
       });
-    }else if (res.type === "input") {
+    } else if (res.type === "input") {
       //使用简单的正则表达式对记事进行相应检索
       this.setData({ input: String(res.detail.value) });
-      if(!this.data.searching) this.setData({ searching: true });
+      if (!this.data.searching) this.setData({ searching: true });
       var reg = /'/;
       try {
         reg.compile(that.data.input)
@@ -141,18 +141,18 @@ Page({
       if (!!that.data.input) {
         that.setData({ result: result });
       } else that.setData({ result: [] });
-    }else if (res.type === "blur") {
+    } else if (res.type === "blur") {
       if (!this.data.input && this.data.input !== 0) {
         this.setData({
           searching: false,
           result: null
         });
       }
-    }else if (res.type === "tap") {
+    } else if (res.type === "tap") {
       this.setData({ focus: false });
       if (this.data.searchType) {
         this.setData({ searchType: false });
-      } else this.setData({ searchType: true});
+      } else this.setData({ searchType: true });
       wx.showToast({
         title: "检索记事" + (that.data.searchType ? "文本" : "标题"),
         icon: "none"
@@ -178,20 +178,20 @@ Page({
         this.tagA = true;
         this.hideMenu(index);
         anchor[1] = [res.changedTouches[0].pageX, new Date().getTime()];
-      }else {
+      } else {
         this.tagB = true;
         var pullOutDelete = this.data.note[index].style.pullOutDelete;
         var pullOutMenu = this.data.note[index].style.pullOutMenu;
         var moveDistance = (res.changedTouches[0].pageX - anchor[1][0]) * SWT;
-        if ((pullOutDelete >= 0 && pullOutDelete <= 120) 
-             && (moveDistance > 0 && Math.abs(moveDistance) < 120)) {
+        if ((pullOutDelete >= 0 && pullOutDelete <= 120)
+          && (moveDistance > 0 && Math.abs(moveDistance) < 120)) {
           if (pullOutMenu !== 330) {
             this.setData({ ["note[" + index + "].style.pullOutMenu"]: 330 });
           }
           this.setData({ ["note[" + index + "].style.pullOutDelete"]: 120 - Math.abs(moveDistance) });
         }
-        if ((pullOutMenu >= 0 && pullOutMenu <= 330) 
-             && (moveDistance < 0 && Math.abs(moveDistance) < 330)) {
+        if ((pullOutMenu >= 0 && pullOutMenu <= 330)
+          && (moveDistance < 0 && Math.abs(moveDistance) < 330)) {
           if (pullOutDelete !== 120) {
             this.setData({ ["note[" + index + "].style.pullOutDelete"]: 120 });
           }
@@ -210,7 +210,7 @@ Page({
               that.data.note[index].style.pullOutDelete = 0;
             }
             that.setData({
-            ["note[" + index + "].style.pullOutDelete"]:
+              ["note[" + index + "].style.pullOutDelete"]:
               that.data.note[index].style.pullOutDelete
             });
             if (that.data.note[index].style.pullOutDelete > 0) showOff();
@@ -220,7 +220,7 @@ Page({
               that.data.note[index].style.pullOutDelete = 120;
             }
             that.setData({
-            ["note[" + index + "].style.pullOutDelete"]:
+              ["note[" + index + "].style.pullOutDelete"]:
               that.data.note[index].style.pullOutDelete
             });
             if (that.data.note[index].style.pullOutDelete < 120) showOff();
@@ -231,7 +231,7 @@ Page({
               that.data.note[index].style.pullOutMenu = 0;
             }
             that.setData({
-            ["note[" + index + "].style.pullOutMenu"]:
+              ["note[" + index + "].style.pullOutMenu"]:
               that.data.note[index].style.pullOutMenu
             });
             if (that.data.note[index].style.pullOutMenu > 0) showOff();
@@ -241,7 +241,7 @@ Page({
               that.data.note[index].style.pullOutMenu = 330;
             }
             that.setData({
-            ["note[" + index + "].style.pullOutMenu"]:
+              ["note[" + index + "].style.pullOutMenu"]:
               that.data.note[index].style.pullOutMenu
             });
             if (that.data.note[index].style.pullOutMenu < 330) showOff();
@@ -262,9 +262,9 @@ Page({
         var pullOutDelete = this.data.note[id].style.pullOutDelete;
         condition = (pullOutDelete === 120 && pullOutMenu === 330);
         if ((res.touches[0].pageX * SWT < 400 &&
-            pullOutMenu !== 330) ||
-            pullOutDelete !== 120) this.hideMenu();
-      }else this.hideMenu();
+          pullOutMenu !== 330) ||
+          pullOutDelete !== 120) this.hideMenu();
+      } else this.hideMenu();
       if (condition) {
         this.hideMenu();
         this.setData({
@@ -286,7 +286,7 @@ Page({
           }
         });
       }
-    }else if (!!id) {
+    } else if (!!id) {
       id = id.match(/\d+/g)[0];
       this.setData({
         input: "",
@@ -317,7 +317,7 @@ Page({
             }, 250)
           }, 250)
         }, 250);
-      }else {
+      } else {
         var note = this.data.note[id].note
         this.setData({
           title: note.title,
@@ -335,7 +335,7 @@ Page({
     var that = this;
     var index = res.currentTarget.id.match(/\d+/g)[0];
     this.hideMenu();
-    (function tips () {
+    (function tips() {
       setTimeout(() => {
         if (that.data.note[index].style.pullOutDelete !== 120
           || that.data.note[index].style.pullOutMenu !== 330) {
@@ -381,12 +381,12 @@ Page({
               complete(res) { tag += 1; }
             })
           } else tag += 1;
-          (function deleting () {
+          (function deleting() {
             if (tag < 3) {
               setTimeout(() => {
                 deleting();
               }, 20)
-            }else {
+            } else {
               that.data.note[index].style.opacity -= 0.05;
               that.setData({ note: that.data.note });
               setTimeout(() => {
@@ -443,7 +443,7 @@ Page({
     if (label === "image") label = "photo";
     if (label === "text") {
       var condition = this.data.note[index].note.text.content.length > 0
-    }else var condition = this.data.note[index].note[label].length > 0;
+    } else var condition = this.data.note[index].note[label].length > 0;
     if (condition) {
       this.hideMenu();
       if (label === "record") label = "voice";
@@ -455,6 +455,7 @@ Page({
       var note = this.data.note[index].note;
       if (note.text.content.length > 0) this.setData({ text: note.text });
       if (note.record.length > 0) {
+        that.data.playback = [];
         note.record.forEach((ele, id) => {
           that.data.playback.push({
             record_index: id,
@@ -463,19 +464,20 @@ Page({
             opacity: 1
           })
         });
-        that.setData({ playback: note.record });
+        that.setData({ playback: that.data.playback });
       }
       if (note.photo.length > 0) {
+        that.data.img = [];
         note.photo.forEach((ele, id) => {
-          that.data.playback.push({
+          that.data.img.push({
             photo_index: id,
             url: ele.url
           })
         });
-        that.setData({ playback: note.photo });
+        that.setData({ img: that.data.img });
       }
       if (note.video.length > 0) this.setData({ video: note.video });
-    }else {
+    } else {
       if (label === "record") label = "voice";
       if (label === "photo") label = "image";
       switch (label) {
@@ -509,7 +511,7 @@ Page({
               that.data.note[ele.index].style.pullOutDelete = 120;
             }
             that.setData({
-            ["note[" + ele.index + "]style.pullOutDelete"]:
+              ["note[" + ele.index + "]style.pullOutDelete"]:
               that.data.note[ele.index].style.pullOutDelete
             });
             if (that.data.note[ele.index].style.pullOutDelete < 120) hideDel();
@@ -524,7 +526,7 @@ Page({
               that.data.note[ele.index].style.pullOutMenu = 330;
             }
             that.setData({
-            ["note[" + ele.index + "]style.pullOutMenu"]:
+              ["note[" + ele.index + "]style.pullOutMenu"]:
               that.data.note[ele.index].style.pullOutMenu
             });
             if (that.data.note[ele.index].style.pullOutMenu < 330) hideMenu();
@@ -533,12 +535,12 @@ Page({
       }
     });
   },
-  
+
   //背景图的切换
   backgroundImageChange(res) {
     if (res.type === "touchstart") {
       anchor[0] = res.changedTouches[0].pageX;
-    }else if (res.type === "touchmove") {
+    } else if (res.type === "touchmove") {
       var moveDistance = (res.changedTouches[0].pageX - anchor[0]) * SWT;
       if (Math.abs(moveDistance) > 37.5 && !this.tagA) {
         this.tagA = true;
@@ -546,7 +548,7 @@ Page({
           this.setData({ bgiChange: 1 });
         } else this.setData({ bgiChange: -1 });
       }
-    }else if (res.type === "touchend") {
+    } else if (res.type === "touchend") {
       this.tagA = false;
       anchor[0] = null;
       if (this.data.bgiChange === 1) {
@@ -610,13 +612,13 @@ Page({
       this.data.playback.forEach((ele, id, origin) => {
         if (id !== index && ele.opacity < 1) that.setData({ ["playback[" + id + "].opacity"]: 1 });
       });
-    }else this.timerQueue = [];
+    } else this.timerQueue = [];
     (function breathingEffection() {
       var opacity = that.data.playback[index].opacity;
       if (opacity > 1) flag = true;
       if (opacity < 0.3) flag = false;
       var timer = setTimeout(() => {
-        var opacity= that.data.playback[index].opacity;
+        var opacity = that.data.playback[index].opacity;
         if (new Date().getTime() - timeStamp < that.data.playback[index].duration - 35) {
           if (flag) {
             that.setData({ ["playback[" + index + "].opacity"]: opacity - 0.025 });
@@ -633,7 +635,7 @@ Page({
   getImageInfo(res) {
     var that = this;
     var index = res.currentTarget.id.match(/\d+/g)[0];
-    function saveImage () {
+    function saveImage() {
       wx.showModal({
         title: "读记事",
         content: "是否保存当前图片到本地？",
@@ -686,7 +688,7 @@ Page({
               console.log("authorize");
             }
           });
-        }else saveImage();
+        } else saveImage();
       },
       fail(res) {
         wx.showModal({
@@ -777,7 +779,7 @@ Page({
       if (this.data.video) whichCanShow.push("video");
       this.whichCanShow = whichCanShow;
       anchor[2] = [res.touches[0].pageY, new Date().getTime()];
-    }else if (res.type === "touchend" && this.tagB) {
+    } else if (res.type === "touchend" && this.tagB) {
       this.tagA = false;
       this.tagB = false;
       var moveDistance = (res.changedTouches[0].pageY - anchor[2][0]) * SWT;
