@@ -401,6 +401,7 @@ Page({
       })
     }
   },
+  //文本记事的撰写
   textContent(res) {
     if (res.type === "input") {
       item.note.text.content = res.detail.value;
@@ -681,7 +682,7 @@ Page({
       console.log("动画：按钮呼吸状态成功截停");
     }
   },
-  //当前页API：录音时长进度条
+  //当前页API：录音时长进度条的启动与复位
   progressBar(tag) {
     var that = this;
     if (tag === "start") {
@@ -947,6 +948,7 @@ Page({
       }
     }
   },
+  //实时获取图片展示当前滑块的索引
   setImgCurrent(res) {
     this.setData({ imgCurrent: res.detail.current });
   },
@@ -1275,7 +1277,8 @@ Page({
       })
     }
   },
-
+  
+  //背景图片的切换
   backgroundImageChange(res) {
     if (res.type === "touchstart") {
       this.anchor = res.changedTouches[0].pageX;
@@ -1302,6 +1305,7 @@ Page({
     }
   },
 
+  //菜单栏的返回
   backToMenu(res) {
     if (this.data.noting === "voice") innerAudioContext.stop();
     this.setData({ noting: "menu" });
