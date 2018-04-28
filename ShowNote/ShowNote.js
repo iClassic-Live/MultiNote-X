@@ -39,7 +39,7 @@ Page({
         ele.record_index = id;
         ele.opacity = 1;
       });
-      ele.note.image.forEach((ele, id) => {
+      ele.note.photo.forEach((ele, id) => {
         ele.photo_index = id;
       });
       ele.style = new Object();
@@ -78,7 +78,7 @@ Page({
   },
 
   /* 自定义用户交互逻辑 */
-  
+
 
   //记事检索功能
   search(res) {
@@ -324,8 +324,8 @@ Page({
           text: note.text,
           sw: "text"
         });
-        if (note.voice.length > 0) this.setData({ voice: note.voice });
-        if (note.image.length > 0) this.setData({ image: note.image });
+        if (note.record.length > 0) this.setData({ playback: note.record });
+        if (note.photo.length > 0) this.setData({ img: note.photo });
         if (note.video.length > 0) this.setData({ video: note.video });
       }
     }
@@ -359,16 +359,16 @@ Page({
           });
           var tag = 0;
           var note = that.data.note;
-          if (note[index].note.voice.length > 0) {
-            note[index].note.voice.forEach((ele, id, origin) => {
+          if (note[index].note.record.length > 0) {
+            note[index].note.record.forEach((ele, id, origin) => {
               wx.removeSavedFile({
                 filePath: ele.url,
                 complete(res) { if (id === origin.length - 1) tag += 1; }
               });
             });
           } else tag += 1;
-          if (note[index].note.image.length > 0) {
-            note[index].note.image.forEach((ele, id, origin) => {
+          if (note[index].note.photo.length > 0) {
+            note[index].note.photo.forEach((ele, id, origin) => {
               wx.removeSavedFile({
                 filePath: ele.url,
                 complete(res) { if (id === origin.length - 1) tag += 1; }
@@ -438,6 +438,8 @@ Page({
     var label = res.currentTarget.id;
     var index = label.match(/\d+/g)[0];
     label = label.slice(0, label.indexOf("_"));
+    if (label === "voice") label = "record";
+    if (label === "image") label = "photo";
     if (label === "text") {
       var condition = this.data.note[index].note.text.content.length > 0
     }else var condition = this.data.note[index].note[label].length > 0;
@@ -449,10 +451,12 @@ Page({
       });
       var note = this.data.note[index].note;
       if (note.text.content.length > 0) this.setData({ text: note.text });
-      if (note.voice.length > 0) this.setData({ voice: note.voice });
-      if (note.image.length > 0) this.setData({ image: note.image });
+      if (note.record.length > 0) this.setData({ playback: note.record });
+      if (note.photo.length > 0) this.setData({ img: note.photo });
       if (note.video.length > 0) this.setData({ video: note.video });
     }else {
+      if (label === "record") label = "voice";
+      if (label === "photo") label = "image";
       switch (label) {
         case "text": var content = "文本记事"; break;
         case "voice": var content = "语音记事"; break;
@@ -546,8 +550,8 @@ Page({
       sw: "overview",
       title: null,
       text: null,
-      voice: null,
-      image: null,
+      playback: null,
+      photo: null,
       video: null
     });
     innerAudioContext.stop();
@@ -576,33 +580,33 @@ Page({
     var that = this;
     var index = res.currentTarget.id.match(/\d+/g)[0];
     var timeStamp = new Date().getTime();
-    if ("opacity" in this.data.voice[index] === false) {
-      this.setData({ ["voice[" + index + "].opacity"]: 1 });
+    if ("opacity" in this.data.playback[index] === false) {
+      this.setData({ ["playback[" + index + "].opacity"]: 1 });
     }
     var flag = true;
     if ("timerQueue" in this) {
       for (let i = this.timerQueue.length - 1; i > 0; i--) clearTimeout(this.timerQueue[i]);
-      this.data.voice.forEach((ele, id, origin) => {
-        if (id !== index && ele.opacity < 1) that.setData({ ["voice[" + id + "].opacity"]: 1 });
+      this.data.playback.forEach((ele, id, origin) => {
+        if (id !== index && ele.opacity < 1) that.setData({ ["playback[" + id + "].opacity"]: 1 });
       });
     }else this.timerQueue = [];
     (function breathingEffection() {
-      var opacity = that.data.voice[index].opacity;
+      var opacity = that.data.playback[index].opacity;
       if (opacity > 1) flag = true;
       if (opacity < 0.3) flag = false;
       var timer = setTimeout(() => {
-        var opacity= that.data.voice[index].opacity;
-        if (new Date().getTime() - timeStamp < that.data.voice[index].duration - 35) {
+        var opacity= that.data.playback[index].opacity;
+        if (new Date().getTime() - timeStamp < that.data.playback[index].duration - 35) {
           if (flag) {
-            that.setData({ ["voice[" + index + "].opacity"]: opacity - 0.025 });
-          } else that.setData({ ["voice[" + index + "].opacity"]: opacity + 0.025 });
+            that.setData({ ["playback[" + index + "].opacity"]: opacity - 0.025 });
+          } else that.setData({ ["playback[" + index + "].opacity"]: opacity + 0.025 });
           breathingEffection();
-        } else that.setData({ ["voice[" + index + "].opacity"]: 1 });
+        } else that.setData({ ["playback[" + index + "].opacity"]: 1 });
       }, 35);
       if (that.timerQueue.indexOf(timer) === -1) that.timerQueue.push(timer);
     })();
     innerAudioContext.autoplay = "true";
-    innerAudioContext.src = this.data.voice[index].url;
+    innerAudioContext.src = this.data.playback[index].url;
   },
   //记事图片的操作
   getImageInfo(res) {
@@ -615,7 +619,7 @@ Page({
         success(res) {
           if (res.confirm) {
             wx.saveImageToPhotosAlbum({
-              filePath: that.data.image[index].url,
+              filePath: that.data.img[index].url,
               success(res) {
                 wx.showToast({
                   title: "保存图片成功！",
@@ -747,8 +751,8 @@ Page({
       this.whichShowNow = whichShowNow;
       var whichCanShow = [];
       if (this.data.text) whichCanShow.push("text");
-      if (this.data.voice) whichCanShow.push("voice");
-      if (this.data.image) whichCanShow.push("Video");
+      if (this.data.playback) whichCanShow.push("voice");
+      if (this.data.img) whichCanShow.push("Video");
       if (this.data.video) whichCanShow.push("video");
       this.whichCanShow = whichCanShow;
       anchor[2] = [res.touches[0].pageY, new Date().getTime()];
@@ -767,8 +771,8 @@ Page({
             this.setData({
               sw: "overview",
               text: null,
-              voice: null,
-              image: null,
+              playback: [],
+              img: [],
               video: null
             });
           }
@@ -779,8 +783,8 @@ Page({
             this.setData({
               sw: "overview",
               text: null,
-              voice: null,
-              image: null,
+              playback: null,
+              img: null,
               video: null
             });
           }
