@@ -65,10 +65,10 @@ Page({
   },
 
   /* 生命周期函数--监听页面加载 */
-  onLoad: function (options) {
+  onLoad(options) {
     console.log("CreateNote onLoad");
     wx.hideLoading();
-    var bgiCurrent = wx.getStorageSync("bgiCurrent") || 0;
+    var bgiCurrent = wx.getStorageSync("bgiCurrent");
     if (this.data.current !== bgiCurrent) this.setData({ current: bgiCurrent });
     //监测是否获取了设备的录音权限、相机权限和保存到相册的权限
     wx.getSetting({
@@ -237,51 +237,27 @@ Page({
   },
 
   /* 生命周期函数--监听页面显示 */
-  onShow: function (res) {
+  onShow(res) {
     console.log("CreateNote onShow");
     var bgiCurrent = wx.getStorageSync("bgiCurrent");
     if (this.data.current === bgiCurrent) {
       if (this.data.duration !== 500) this.setData({ duration: 500 });
     } else this.setData({ current: bgiCurrent });
-    //针对系统存在虚拟导航栏的安卓用户进行优化以避免因记事条目过多导致读记事页的检索功能失常;
-    var nums = wx.getStorageSync("How Many Notes Can I Create");
-    if (nums[0] === "unchanged") {
-      var length = wx.getStorageSync("note").length;
-      var ifCreatingNote = true;
-      if (wx.getStorageInfoSync().keys.indexOf("item_to_edit") !== -1) ifCreatingNote = false;
-      var timer = setInterval(() => {
-        var nums = Math.floor(wx.getSystemInfoSync().windowHeight * (750 / wx.getSystemInfoSync().windowWidth) * 0.85 / 73.5);
-        if (nums[1] > nums) {
-          wx.setStorageSync("How Many Notes Can I Create", ["changed", nums]);
-          if (length >= nums) {
-            if (ifCreatingNote) {
-              sign = true; //检测到应用视口高度发生变化导致记事条目已达上限
-              var content = "当前记事将不能保存，";
-            } else var content = "";
-            wx.showModal({
-              title: "写记事",
-              content: "警告：发现由于系统虚拟导航栏因在应用使用过程中被拉起导致应用视口高度发生变化，为保证应用功能正常，" + content + "您需要在目前基础上再删除" + (length - nums + 1) + "条记事才能创建新的记事，不便之处请您谅解！"
-            });
-            clearInterval(timer);
-          }
-        }
-      }, 10);
-    }
   },
 
   /* 生命周期函数--监听页面初次渲染完成 */
-  onReady: function (res) {
+  onReady(res) {
     console.log("CreateNote onReady");
     if (this.data.duration !== 500) this.setData({ duration: 500 });
   },
 
   /* 生命周期函数--监听页面隐藏 */
-  onHide: function (res) {
+  onHide(res) {
     console.log("CreateNote onHide");
   },
 
   /* 生命周期函数--监听页面卸载 */
-  onUnload: function (res) {
+  onUnload(res) {
     console.log("CreateNote onUnload");
   },
 
@@ -554,11 +530,9 @@ Page({
         frameSize: 50
       });
     }else {
-      setTimeout(() => {
-        wx.showToast({
-          title: "语音记事已满",
-          image: "../images/warning.png"
-        })
+      wx.showToast({
+        title: "语音记事已满",
+        image: "../images/warning.png"
       })
     }
   },
@@ -1120,10 +1094,6 @@ Page({
       ((item.note.text.content.length > 0
         || item.note.record.length > 0)
         || item.note.video.length > 0)) canISave = true;
-    //操作记事保存与取消时关闭已开启的所有记事的权限以免误操作
-    for (let prop in this.data) {
-      if (/Access/.test(prop) && this.data[prop]) this.setData({ [prop]: false });
-    }
     if (canISave) {
       console.log("保存前的记事存储状态：",
         "\n记事标题：", item.note.title,
@@ -1140,7 +1110,32 @@ Page({
               title: "正在保存记事！",
               mask: true
             });
-            var tag = 0;
+            var tag = new Proxy([0], {
+              set(target, key, value, receiver) {
+                console.log(tag);
+                if (parseInt(key) === 0 && value === 3) {
+                  var note = wx.getStorageSync("note");
+                  note[item.id] = item;
+                  wx.setStorageSync("note", note);
+                  console.log("成功保存当前记事并合并到总目录！");
+                  wx.showToast({
+                    title: "记事保存成功！",
+                    image: "../images/success.png",
+                    mask: true,
+                    success(res) {
+                      setTimeout(() => {
+                        wx.showLoading({
+                          title: "正在进入读记事",
+                          mask: true,
+                        });
+                        wx.redirectTo({ url: "../ShowNote/ShowNote" });
+                      }, 1500);
+                    }
+                  });
+                }
+                return Reflect.set(target, key, value, receiver);
+              }
+            });
             if (item.note.record.length > 0) {
               item.note.record.forEach((ele, index, origin) => {
                 if (/tmp/g.test(ele.url)) {
@@ -1157,11 +1152,11 @@ Page({
                         image: "../images/error.png"
                       });
                     },
-                    complete(res) { if (index === item.note.record.length - 1) tag += 1; }
+                    complete(res) { if (index === item.note.record.length - 1) tag[0] += 1; }
                   });
-                } else if (index === item.note.record.length - 1) tag += 1;
+                } else if (index === item.note.record.length - 1) tag[0] += 1;
               });
-            } else tag += 1;
+            } else tag[0] += 1;
             if (item.note.photo.length > 0) {
               item.note.photo.forEach((ele, index, origin) => {
                 if (/tmp/g.test(ele.url)) {
@@ -1178,11 +1173,11 @@ Page({
                         image: "../images/error.png"
                       });
                     },
-                    complete(res) { if (index === item.note.photo.length - 1) tag += 1; }
+                    complete(res) { if (index === item.note.photo.length - 1) tag[0] += 1; }
                   });
-                } else if (index === item.note.photo.length - 1) tag += 1;
+                } else if (index === item.note.photo.length - 1) tag[0] += 1;
               });
-            } else tag += 1;
+            } else tag[0] += 1;
             if (item.note.video.length > 0 && /tmp/g.test(item.note.video)) {
               console.log("开始保存视频");
               wx.saveFile({
@@ -1197,37 +1192,9 @@ Page({
                     image: "../images/error.png"
                   });
                 },
-                complete(res) { tag += 1; }
+                complete(res) { tag[0] += 1; }
               })
-            } else tag += 1;
-            (function save_jump() {
-              if (tag < 3) {
-                setTimeout(() => {
-                  console.log("API wx.saveFile() 调用未完成,");
-                  save_jump();
-                }, 10);
-              } else {
-                wx.hideLoading();
-                var note = wx.getStorageSync("note");
-                note[item.id] = item;
-                wx.setStorageSync("note", note);
-                console.log("成功保存当前记事并合并到总目录！");
-                wx.showToast({
-                  title: "记事保存成功！",
-                  image: "../images/success.png",
-                  mask: true,
-                  success(res) {
-                    setTimeout(() => {
-                      wx.showLoading({
-                        title: "正在进入读记事",
-                        mask: true,
-                      });
-                      wx.redirectTo({ url: "../ShowNote/ShowNote" });
-                    }, 1500);
-                  }
-                });
-              }
-            })()
+            } else tag[0] += 1;
           } else {
             wx.showModal({
               title: "写记事",
