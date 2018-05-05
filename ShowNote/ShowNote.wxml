@@ -10,32 +10,33 @@
 
 
 
-  <view class="overview" style="display:{{sw === 'overview' ? 'block' : 'none'}};background-color:{{searching ? 'rgba(255, 255, 255, 0.5)' : 'none'}}" bindtap="operateNote">
+  <view class="overview" style="display:{{sw === 'overview' ? 'block' : 'none'}};background-color:{{searching ? 'rgba(255, 255, 255, 0.5)' : 'none'}}">
 
 
     <view class="search">
       <view class="input">
-        <input placeholder="记事检索" value="{{input}}" bindfocus="search" bindinput="search" bindblur="search" focus="{{focus}}"></input>
+        <input placeholder="记事检索" value="{{input}}" bindfocus="search" bindinput="search" bindblur="search"></input>
       </view>
       <view class="setSearchType" bindtap="search">
         <button>{{searchType ? "C" : "T"}}</button>
       </view>
     </view>
 
-    <scroll-view class="list" scroll-y="true" scroll-into-view="{{target}}">
+    <scroll-view class="list" scroll-y="true" scroll-into-view="{{target}}"
+      bindtap="{{ !searching ? 'cancel' : '' }}">
       <view class="item" id="n{{item.id}}" 
         wx:for="{{searching ? result : note}}"wx:key="{{item.id}}" wx:for-item="item"
         style="opacity:{{item.style.opacity}}"
         bindtouchmove="pullOutDel_Menu" bindtouchend="pullOutDel_Menu"
-        catchtap="operateNote">
+        catchtap="{{ !searching ? (item.style.pullOutDelete !== 120 || item.style.pullOutMenu !== 330) ? 'cancel'  : 'editNote' : 'gotoResult' }}">
         <view class="title" style="background-color:{{item.style.bgc || 'rgba(255, 255, 255, 0.4)'}}">
-          <text style="color:{{item.style.fontColor}}">{{searching ? item.title : item.note.title}}</text>
+          <text style="color:{{item.style.fontColor}}">{{ searching ? item.title : item.note.title}}</text>
         </view>
         <view class="del" id="del_{{item.id}}"
           wx:if="{{!searching}}"
           style="left:-{{item.style.pullOutDelete === undefined ? 120 : item.style.pullOutDelete  }}rpx"
           bindtap="deleteNote">删除</view>
-        <view class="menu" wx:if="{{!searching}}" style="right:-{{item.style.pullOutMenu === undefined ? 325 : item.style.pullOutMenu  }}rpx">
+        <view class="menu" wx:if="{{!searching}}" style="right:-{{ item.style.pullOutMenu === undefined ? 325 : item.style.pullOutMenu }}rpx">
           <image id="text_{{item.id}}"
             mode="aspectFit" src="../images/text.png" bindtap="getContent"></image>
           <image id="voice_{{item.id}}"
@@ -48,7 +49,7 @@
       </view>
     </scroll-view>
 
-    <view class="bottom" style="display:{{ searching ? 'none' : 'block' }}">
+    <view class="bottom" style="display:{{ searching ? 'none' : 'block' }}" bindtap="cancel">
       <view class="bgiChange">
         <view class="bgiChange_cp">
           <image src="../images/bgiChange.png" style="left:{{ 50 * bgiChange }}%" 
@@ -88,7 +89,8 @@
       
       <view class="voice"
         style="display:{{sw === 'voice' ? '' : 'none'}}">
-        <button id="voice-item_{{item.record_index}}" src="{{item.url}}" wx:for="{{playback}}" wx:for-item="item" wx:key="{{item}}" style="opacity:{{item.opacity}}" bindtap="getVoiceInfo">
+        <button id="voice-item_{{item.record_index}}" src="{{item.url}}" wx:for="{{playback}}" 
+          wx:for-item="item" wx:key="{{item}}" style="opacity:{{item.opacity}}" bindtap="getVoiceInfo">
          {{index + 1}}
         </button>
       </view>
@@ -104,7 +106,7 @@
       </view>
 
       <view class="video video_cp" style="display:{{sw === 'video' ? 'block' : 'none'}}">
-        <video class="video_cp" src="{{videoSrc}}" bindlongpress="getVideoInfo"></video>
+        <video class="video_cp" src="{{video}}" bindlongpress="getVideoInfo"></video>
       </view>
       
     </view>
