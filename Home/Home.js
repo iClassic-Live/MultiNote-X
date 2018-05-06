@@ -1,9 +1,6 @@
 //获取用户本机的相对像素比
 const SWT = 750 / wx.getSystemInfoSync().screenWidth;
 
-//用于监测变换图片的滑动操作起始的标识
-var lockA = true; //获取滑动起始点信息的锁
-var lockB = true; //滑动达到指定值后的锁
 /* 页面构造器：页面功能初始化 */
 
   Page({
@@ -23,8 +20,9 @@ var lockB = true; //滑动达到指定值后的锁
       /* 生命周期函数--监听页面加载 */
       onLoad (res) {
         console.log("Home onLoad");
-        var bgiCurrent = wx.getStorageSync("bgiCurrent") || 0;
-        if (this.data.current !== bgiCurrent) this.setData({ current: bgiCurrent });
+        this.data = require("../api/api.js").rendering(this);
+        var bgiCurrent = wx.getStorageSync("bgiCurrent");
+        if (this.data.current !== bgiCurrent) this.data.current = bgiCurrent;
       },
 
       /* 生命周期函数--监听页面显示 */
@@ -32,25 +30,14 @@ var lockB = true; //滑动达到指定值后的锁
         console.log("Home onShow");
         var bgiCurrent = wx.getStorageSync("bgiCurrent");
         if (this.data.current === bgiCurrent) {
-          if (this.data.current !== 500) this.setData({ duration: 500 });
-        } else this.setData({ current: bgiCurrent });
-        //针对系统存在虚拟导航栏的安卓用户进行优化以避免因记事条目过多导致读记事页的检索功能失常;
-        var creatingSign = [wx.getStorageSync("How Many Notes Can I Create"), null];
-        if (creatingSign[0][0] === "unchanged") {
-          creatingSign[1] = setInterval(() => {
-            var num = Math.floor(wx.getSystemInfoSync().windowHeight * SWT * 0.85 / 73.5);
-            if (creatingSign[0][1] > num) {
-              wx.setStorageSync("How Many Notes Can I Create", ["changed", num]);
-              clearInterval(creatingSign[1]);
-            }
-          });
-        }
+          if (this.data.current !== 500) this.data.duration = 500;
+        } else this.data.current = bgiCurrent;
       },
 
       /* 生命周期函数--监听页面初次渲染完成 */
       onReady (res) {
         console.log("Home onReady");
-        if (this.data.current !== 500) this.setData({ duration: 500 });
+        if (this.data.current !== 500) this.data.duration = 500;
       },
 
       /* 生命周期函数--监听页面卸载 */

@@ -462,7 +462,7 @@ Page({
   },
 
   //背景图的切换
-  backgroundImageChange(res) {
+  changeBackgroundImage(res) {
     if (res.type === "touchstart") {
       anchor[0] = res.changedTouches[0].pageX;
     } else if (res.type === "touchmove") {

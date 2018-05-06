@@ -26,19 +26,19 @@
       <view class="photo sel" bindtap="getPhotoFn" bindlongpress="getPhotoFn" style="border:9rpx solid {{img.length > 0 && img.length < 5  ? 'orange': img.length === 5 ? 'red' : 'green'}}">
         <image src="../images/image.png"></image>
       </view>
-      <view class="shoot sel"bindtap="getShootFn" bindlongpress="getShootFn" style="border:9rpx solid {{videoSrc.length > 0 ? 'red' : 'green'}}">
+      <view class="shoot sel"bindtap="getShootFn" bindlongpress="getShootFn" style="border:9rpx solid {{video.length > 0 ? 'red' : 'green'}}">
         <image src="../images/video.png"></image>
       </view>
       <view class="save_cancel sel" bindtap="save_cancel">
-        <image src="../images/{{ ((( text.content.length > 0 || playback.length > 0) || img.length > 0) || videoSrc.length > 0) ? 'save' : 'cancel' }}.png"></image>
+        <image src="../images/{{ ((( text.content.length > 0 || playback.length > 0) || img.length > 0) || video.length > 0) ? 'save' : 'cancel' }}.png"></image>
       </view>
     </view>
     <view class="bgiChange">
       <view class="bgiChange_cp">
         <image src="../images/bgiChange.png" style="left:{{ 50 * bgiChange }}%" 
-          bindtouchstart="backgroundImageChange" 
-          bindtouchmove="backgroundImageChange"
-          bindtouchend="backgroundImageChange"></image>
+          bindtouchstart="changeBackgroundImage" 
+          bindtouchmove="changeBackgroundImage"
+          bindtouchend="changeBackgroundImage"></image>
       </view>
     </view>
   </view>
@@ -78,7 +78,7 @@
         </swiper>
       </view>
       <view class="video sel" wx:if="{{noting === 'video'}}">
-        <video src="{{videoSrc}}" bindlongpress="videoPreview"></video>
+        <video src="{{video}}" bindlongpress="videoPreview"></video>
       </view>
     </view>
   </view>
@@ -102,7 +102,7 @@
     </cover-view>
     <cover-view class="bottom">
       <cover-view class="preview component" wx:if="{{ifPhoto}}" bindtap="preview">
-        <cover-image src="{{preview}}"></cover-image>
+        <cover-image mode="widthFix" src="{{preview}}"></cover-image>
       </cover-view>
       <cover-view class="cameraSet component" bindtap="cameraSet">
         <cover-image mode="widthFix" src="{{cameraSet}}"></cover-image>

@@ -1,4 +1,4 @@
-//关键词：自动渲染、使用ES6的proxy做深度代理
+//关键词：自动渲染、开关控制渲染读写、使用ES6的proxy做深度代理
 /*P.S.: 
     1. 使用该方法进行渲染会导致应用运行流畅度比主动调用setData进行渲染时稍有下降，
        若对应用运行流畅度有要求请不要使需要渲染的数据嵌套太深;
@@ -6,16 +6,17 @@
 module.exports = {  //需要使用该方法时在相应页面的onLoad周期require即可
   rendering(that) {  //that参数为调用该函数所在地的this
     //返回深度代理函数的立即执行结果
-    return (function deepProxy(item, path) {
+    return (function deepProxy(item, path, status) {
+      status = true;
       if (item instanceof Object) {  //当item的数据类型为对象时
-        if (item instanceof Array) { //若item为数组则以数组方式对其属性进行遍历
+        if (item instanceof Array) {  //若item为数组则以数组方式对其属性进行遍历
           item.forEach((ele, index) => {
             item[index] = deepProxy(item[index], (() => {
               if (path !== undefined) {
                 return path + "[" + index + "]";
               } else return index;
             })());
-          });
+          }, true);
         } else {  //若item不为数组则以对象方式对其属性进行遍历
           for (let prop in item) {
             if (item.hasOwnProperty(prop)) {
@@ -23,31 +24,34 @@ module.exports = {  //需要使用该方法时在相应页面的onLoad周期requ
                 if (path !== undefined) {
                   return path + "." + prop;
                 } else return prop;
-              })());
+              })(), true);
             }
           }
         }
         return new Proxy(item, {  //返回为item订制的代理
           set(target, key, value, receiver) {  //当item的属性被读写时的操作
-            if (JSON.stringify(value) !== JSON.stringify(target[key])) {  //当读写未同步时
-              if (value !== undefined) target[key] = value; //同步读写状态
-              that.setData({
-              [(() => {
-                if (path !== undefined) {
-                  if (item instanceof Array) {
-                    return path + "[" + key + "]";
-                  } else return path + "." + key;
-                } else return key;
-              })()]: value
-              }); //渲染对应数据
-              //对新写入的数据进行深度代理
-              value = deepProxy(value, (() => {
-                if (path !== undefined) {
-                  if (item instanceof Array) {
-                    return path + "[" + key + "]";
-                  } else return path + "." + key;
-                } else return key;
-              })());
+            let condition = !(item instanceof Array && key === "length"); //排除不需要渲染的属性
+            if (condition) {
+              if (status) {  //若可以主动渲染则进行渲染
+                status = false;  //关闭主动渲染开关
+                that.setData({
+                [(() => {
+                  if (path !== undefined) {
+                    if (item instanceof Array) {
+                      return path + "[" + key + "]";
+                    } else return path + "." + key;
+                  } else return key;
+                })()]: value
+                }); //渲染对应数据
+                //对新写入的数据进行深度代理
+                value = deepProxy(value, (() => {
+                  if (path !== undefined) {
+                    if (item instanceof Array) {
+                      return path + "[" + key + "]";
+                    } else return path + "." + key;
+                  } else return key;
+                })(), true);
+              } else status = true;  //复位主动渲染开关
             }
             return Reflect.set(target, key, value, receiver);
           },
@@ -56,12 +60,8 @@ module.exports = {  //需要使用该方法时在相应页面的onLoad周期requ
               if (item instanceof Array) {
                 item.splice(item.indexOf(item[key], 1));
               } else delete item[key];
-              status = JSON.parse(JSON.stringify(item));
               that.setData({ [path]: item });
-            } else {
-              delete status[key];
-              that.setData({ [key]: null });
-            }
+            } else that.setData({ [key]: null });
             return Reflect.deleteProperty(target, key);
           }
         });

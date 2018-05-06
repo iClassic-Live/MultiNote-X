@@ -53,8 +53,8 @@
       <view class="bgiChange">
         <view class="bgiChange_cp">
           <image src="../images/bgiChange.png" style="left:{{ 50 * bgiChange }}%" 
-            bindtouchstart="backgroundImageChange" bindtouchmove="backgroundImageChange"
-            bindtouchend="backgroundImageChange"></image>
+            bindtouchstart="changeBackgroundImage" bindtouchmove="changeBackgroundImage"
+            bindtouchend="changeBackgroundImage"></image>
         </view>
       </view>
       <view class="new">
