@@ -391,11 +391,11 @@ Page({
       if (note.text.content.length > 0) this.data.text = note.text;
       if (note.record.length > 0) {
         that.data.playback = [];
-        note.record.forEach((ele, id) => {
+        note.record.forEach((ele, id) => {;
           that.data.playback.push({
             record_index: id,
             url: ele.url,
-            duratoin: ele.duration,
+            duration: ele.duration,
             opacity: 1
           })
         });
@@ -527,32 +527,34 @@ Page({
     var index = res.currentTarget.id.match(/\d+/g)[0];
     var timeStamp = new Date().getTime();
     if ("opacity" in this.data.playback[index] === false) {
-      this.data.playbaclk[index].opacity = 1;
+      this.data.playback[index].opacity = 1;
     }
     if ("timerQueue" in this) {
       for (let i = this.timerQueue.length - 1; i > 0; i--) clearTimeout(this.timerQueue[i]);
       this.data.playback.forEach((ele, id, origin) => {
-        if (id !== index && ele.opacity < 1) this.data.playbaclk[index].opacity = 1;
+        if (id !== index && ele.opacity < 1) this.data.playback[index].opacity = 1;
       });
     } else this.timerQueue = [];
-    (function breathingEffection() {
-      if (that.data.playback[index].opacity >= 1) that.flag = true;
-      if (that.data.playback[index].opacity <= 0.3) that.flag = false;
-      var timer = setTimeout(() => {
-        if (new Date().getTime() - timeStamp < that.data.playback[index].duration - 35) {
-          if (that.flag) {
-            that.data.playbaclk[index].opacity -= 0.025;
-          } else that.data.playbaclk[index].opacity += 0.025;
-          breathingEffection();
-        } else {
-          that.data.playbaclk[index].opacity = 1;
-          delete that.flag;
-        }
-      }, 35);
-      if (that.timerQueue.indexOf(timer) === -1) that.timerQueue.push(timer);
-    })();
     innerAudioContext.autoplay = "true";
     innerAudioContext.src = this.data.playback[index].url;
+    innerAudioContext.onCanplay(() => {
+      (function breathingEffection() {
+        if (that.data.playback[index].opacity >= 1) that.flag = true;
+        if (that.data.playback[index].opacity <= 0.3) that.flag = false;
+        var timer = setTimeout(() => {
+          if (new Date().getTime() - timeStamp < that.data.playback[index].duration - 35) {
+            if (that.flag) {
+              that.data.playback[index].opacity -= 0.025;
+            } else that.data.playback[index].opacity += 0.025;
+            breathingEffection();
+          } else {
+            that.data.playback[index].opacity = 1;
+            delete that.flag;
+          }
+        }, 35);
+        if (that.timerQueue.indexOf(timer) === -1) that.timerQueue.push(timer);
+      })();
+    });
   },
   //记事图片的操作
   getImageInfo(res) {

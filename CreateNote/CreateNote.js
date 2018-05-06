@@ -51,6 +51,9 @@ Page({
     //图片记事功能初始化
     img: [], //图片记事预览缓存
 
+    //视频记事功能初始化
+    video: "", //视频记事预览缓存
+
     //相机组件功能初始化
     flash: "off", //闪光灯设置，默认关闭
     flashSet: "../images/notflash.png", //闪光灯标识设定
@@ -183,12 +186,19 @@ Page({
     var note = JSON.parse(JSON.stringify(item.note));
     this.data.title = note.title;
     this.data.text = note.text;
+    var that = this;
+    note.record.forEach((ele, index) => {
+      ele.record_index = index,
+      ele.opacity = 1;
+    });
     this.data.playback = note.record;
+    note.photo.forEach((ele, index) => {
+      ele.photo_index = index;
+    });
     this.data.img = note.photo;
     this.data.video = note.video;
 
     //预注册录音开始事件
-    var that = this;
     recorderManager.onStart((res) => {
       if (that.tag) { //当录音开始进程偷跑时截停
         recorderManager.stop();
@@ -1056,7 +1066,6 @@ Page({
             });
             var tag = new Proxy([0], {
               set(target, key, value, receiver) {
-                console.log(tag);
                 if (parseInt(key) === 0 && value === 3) {
                   var note = wx.getStorageSync("note");
                   note[item.id] = item;
