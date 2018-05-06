@@ -184,7 +184,7 @@ Page({
       text: item.note.text,
       playback: item.note.record,
       img: item.note.photo,
-      videoSrc: item.note.photo
+      videoSrc: item.note.video
     });
 
     //预注册录音开始事件
