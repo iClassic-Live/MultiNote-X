@@ -498,7 +498,7 @@ Page({
     delete this.data.title;
     delete this.data.text;
     delete this.data.playback;
-    delete this.data.photo;
+    delete this.data.img;
     delete this.data.video;
     innerAudioContext.stop();
   },
@@ -690,11 +690,10 @@ Page({
   },
   //记事间的快速跳转
   jumpToAnother(res) {
-    if (res.type === "touchmove" && !this.tag) {
+    if (res.type === "touchmove" && !this.tagA) {
       this.tagA = true;
       this.tagB = true;
-      var whichShowNow = this.data.sw; //正在展示的记事类型
-      this.whichShowNow = whichShowNow;
+      this.whichShowNow = this.data.sw; //正在展示的记事类型
       var whichCanShow = [];
       if (this.data.text) whichCanShow.push("text");
       if (this.data.playback) whichCanShow.push("voice");
