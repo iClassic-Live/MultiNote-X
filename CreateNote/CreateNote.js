@@ -16,7 +16,7 @@ var item;
 //语音记事初始化
 const recorderManager = wx.getRecorderManager(); //获取全局唯一的录音管理器 recorderManager
 const innerAudioContext = wx.createInnerAudioContext(); //创建并返回内部audio上下文 innerAudioContext 对象
-var interval, timerA, timerB, timerC; //承接呼吸效果方法定时器和计时器的标识
+var interval, timerA, timerB, timerC; //承接定时器和计时器的的公用标识
 
 //视频记事初始化
 var shootTimer; //录像时长计时器的标识
@@ -74,10 +74,9 @@ Page({
     this.data = require("../api/api.js").rendering(this);
     var bgiCurrent = wx.getStorageSync("bgiCurrent");
     if (this.data.current !== bgiCurrent) this.data.current = bgiCurrent;
-    //监测是否获取了设备的录音权限、相机权限和保存到相册的权限
-    wx.getSetting({
-      success(res) {
-        function failure(prop) {
+    wx.getSetting({  //获取录音功能、相机功能和保存到相册功能的权限获取情况
+      success(res) { //若能或取权限获取情况
+        function failure(prop) { //建立权限获取失败函数
           var content;
           switch (prop) {
             case "scope.record": {
@@ -101,32 +100,41 @@ Page({
             image: "../images/warning.png"
           });
         }
-        if (Object.keys(res.authSetting).length === 3) {
+        if (Object.keys(res.authSetting).length === 3) { //若相应权限都曾要求授权
           for (let prop in res.authSetting) {
-            if (!res.authSetting[prop]) {
-              wx.authorize({
+            if (!res.authSetting[prop]) { //若有相应权限没有授权
+              wx.authorize({ //弹出相应权限的授权提示框
                 scope: prop,
-                fail(res) { wx.openSetting({ fail(res) { failure(prop) } }); }
+                fail(res) { //若授权失败
+                  wx.openSetting({  //打开手机系统授权窗口进行授权
+                    fail(res) { failure(prop) }  //若相应权限仍然无法授权则调取权限获取失败函数
+                    }); 
+                }
               });
             }
           }
-        } else {
+        } else { //若有权限未曾提出授予
           var scopeQueue = ["scope.record", "scope.camera", "scope.writePhotosAlbum"];
           scopeQueue.forEach(ele => {
             if (ele in res.authSetting === false) {
-              wx.authorize({
+              wx.authorize({  //弹出相应权限的授权提示框
                 scope: ele,
-                fail(res) { wx.openSetting({ fail(res) { failure(ele) } }); }
+                fail(res) {
+                  wx.openSetting({  //打开手机系统授权窗口进行授权
+                    fail(res) { failure(ele) }   //若相应权限仍然无法授权则调取权限获取失败函数
+                  });
+                }
               });
             }
           });
         }
       },
-      fail(res) {
+      fail(res) {  //若无法获取录音功能、相机功能和保存到相册功能的权限获取情况
+        //限制相应功能或组件的使用
         getRecordAccess = false;
         getCameraAccess = false;
         getAlbumAccess = false;
-        wx.showModal({
+        wx.showModal({  //弹出权限获取情况无法读取的警告窗口
           title: "写记事",
           content: "警告：无法读取权限获取信息，录音、相机和写入相册功能将不可用！",
           showCancel: false
@@ -138,7 +146,6 @@ Page({
     if (wx.getStorageInfoSync().keys.indexOf("item_to_edit") !== -1) {
       var index = wx.getStorageSync("item_to_edit")
       item = note[index];
-      delete item.note["style"];
       console.log("修改前的记事存储情况如下：",
         "\n记事标题：", item.note.title,
         "\n记事文本：", item.note.text,
@@ -152,7 +159,7 @@ Page({
       item = {
         id: note.length,
         note: {
-          title: (() => {
+          title: (() => {  //新记事的默认标题
             var dateFn = new Date();
             return ("记事 "
               + dateFn.getFullYear()
@@ -169,7 +176,7 @@ Page({
                 "0" + dateFn.getSeconds() : dateFn.getSeconds())
             );
           })(),
-          text: {
+          text: {  //新记事的记事文本的默认内容
             content: "",
             fontSize: "100%",
             fontWeight: "normal",
@@ -181,12 +188,16 @@ Page({
           video: ""
         }
       }
-      console.log("当前记事内容初始化情况", item);
+      console.log("当前记事内容初始化情况如下：",
+        "\n记事标题：", item.note.title,
+        "\n记事文本：", item.note.text,
+        "\n语音记事：", item.note.record,
+        "\n图片记事：", item.note.photo,
+        "\n视频记事：", item.note.video);
     }
     var note = JSON.parse(JSON.stringify(item.note));
     this.data.title = note.title;
     this.data.text = note.text;
-    var that = this;
     note.record.forEach((ele, index) => {
       ele.record_index = index,
       ele.opacity = 1;
@@ -199,6 +210,7 @@ Page({
     this.data.video = note.video;
 
     //预注册录音开始事件
+    var that = this;
     recorderManager.onStart((res) => {
       if (that.tag) { //当录音开始进程偷跑时截停
         recorderManager.stop();
@@ -230,16 +242,16 @@ Page({
               duration: res.duration,
               opacity: 1
             });
+            wx.showToast({
+              title: "第" + item.note.record.length + "条语音记事",
+              icon: "none"
+            });
           } else {
             wx.showToast({
               title: "语音录制过短",
               image: "../images/warning.png"
             });
           }
-        });
-        wx.showToast({
-          title: "第" + (item.note.record.length + 1) + "条语音记事",
-          icon: "none"
         });
       }
     });
@@ -278,7 +290,7 @@ Page({
   titleContent(res) {
     if (res.type === "input") {
       var value = res.detail.value;
-      if (/\s+/.test(value[0])) {
+      if (/\s+/g.test(value[0])) {
         value = value.replace(/\s+/, "");
         wx.showToast({
           title: "首字符不可为空",
@@ -289,7 +301,6 @@ Page({
       this.data.title = value;
     } else if (res.type === "blur") {
       if (!item.note.title.length) {
-        var dateFn = new Date();
         if (item.note.text.content.length > 0) {
           if (item.note.text.content.length < 20) {
             item.note.title = item.note.text.content;
@@ -311,6 +322,7 @@ Page({
         content += " ";
         if (!item.note.text.content.length) {
           if (content.length !== " ") content = "记事 ";
+          var dateFn = new Date();
           item.note.title = content
             + dateFn.getFullYear()
             + (dateFn.getMonth() + 1 < 10 ?
@@ -494,7 +506,7 @@ Page({
                   note[wx.getStorageSync("item_to_edit")].note.record = [];
                   wx.setStorageSync("note", note);
                 }
-              }, 20);
+              });
             })();
           }
         }
@@ -661,7 +673,7 @@ Page({
   },
 
   /* 图片记事 */
-  //图片记事的创建及查看功能权限的开启与关闭
+  //图片记事的创建、打开相机组件和预览图片
   getPhotoFn(res) {
     var that = this;
     if (res.type === "tap") {
@@ -818,8 +830,8 @@ Page({
                 note[wx.getStorageSync("item_to_edit")].note.photo = item.note.photo;
                 wx.setStorageSync("note", note);
                 console.log("当前记事已预合并到总目录");
-              } else if (nums) waiting();
-            }, 20);
+              } else if (!!nums) waiting();
+            });
           })()
           wx.showToast({
             title: "删除成功！",
@@ -1179,12 +1191,20 @@ Page({
         content: "是否取消当前记事？",
         success(res) {
           if (res.confirm) {
-            if (wx.getStorageSync("note").length > 0) {
-              wx.showLoading({
-                title: "正在进入读记事",
-                mask: true,
-              });
-              wx.redirectTo({ url: "../ShowNote/ShowNote" });
+            if (wx.getStorageInfoSync().keys.indexOf("note") !== -1) {
+              if (wx.getStorageSync("note").length > 0) {
+                wx.showLoading({
+                  title: "正在进入读记事",
+                  mask: true,
+                });
+                wx.redirectTo({ url: "../ShowNote/ShowNote" });
+              } else {
+                wx.showLoading({
+                  title: "正在返回启动页",
+                  mask: true,
+                });
+                wx.redirectTo({ url: "../Home/Home" });
+              }
             } else {
               wx.showLoading({
                 title: "正在返回启动页",
@@ -1352,9 +1372,7 @@ Page({
             }
           });
         },
-        fail(res) {
-          failure();
-        }
+        fail(res) { failure(); }
       });
     } else if (this.data.cameraSet === "../images/shoot.png") { //录像模式
       function stopShoot() {
