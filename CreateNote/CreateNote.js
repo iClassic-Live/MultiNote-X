@@ -71,7 +71,7 @@ Page({
   onLoad(options) {
     console.log("CreateNote onLoad");
     wx.hideLoading();
-    this.data = require("../api/api.js").rendering(this);
+    this.data = require("../api/deepProxy.js").rendering(this);
     var bgiCurrent = wx.getStorageSync("bgiCurrent");
     if (this.data.current !== bgiCurrent) this.data.current = bgiCurrent;
     wx.getSetting({  //获取录音功能、相机功能和保存到相册功能的权限获取情况
@@ -813,30 +813,32 @@ Page({
             });
           } else nums = 0;
           item.note.photo.splice(index, 1);
-          item.note.photo.forEach((ele, id) => {
-            that.data.img[id] = {
-              photo_index: id,
-              url: ele.url
-            }
+          let img = JSON.parse(JSON.stringify(that.data.img));
+          img.splice(index, 1);
+          img.forEach((ele, id) => {
+            if (ele.photo_index !== id) ele.photo_index = id;
           });
+          that.data.img = img;
           that.data.ifDeleting = true;
           if (that.data.imgCurrent > 0) that.data.imgCurrent = that.data.imgCurrent - 1;
           that.data.ifDeleting = false;
-          if (!item.note.photo.length) that.data.noting = "menu";
           (function waiting() {
             setTimeout(() => {
               if (!nums && wx.getStorageSync("item_to_edit")) {
                 let note = wx.getStorageSync("note");
                 note[wx.getStorageSync("item_to_edit")].note.photo = item.note.photo;
                 wx.setStorageSync("note", note);
-                console.log("当前记事已预合并到总目录");
+                console.log("当前图片记事已预合并到总目录");
               } else if (!!nums) waiting();
             });
           })()
           wx.showToast({
             title: "删除成功！",
             image: "../images/success.png",
-            mask: true
+            mask: true,
+            success(res) {
+              if (!item.note.photo.length) setTimeout(() => { that.data.noting = "menu"; }, 1500);
+            }
           });
         }
         wx.showModal({
@@ -1036,11 +1038,14 @@ Page({
                   });
                 }
                 item.note.video = "";
-                this.data.video = "";
+                that.data.video = "";
                 wx.showToast({
                   title: "删除成功！",
                   image: "../images/success.png",
-                  mask: true
+                  mask: true,
+                  success(res) {
+                    setTimeout(() => { that.data.noting = "menu"; }, 1500)
+                  }
                 });
               }
             }

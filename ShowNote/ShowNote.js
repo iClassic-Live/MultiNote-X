@@ -28,14 +28,13 @@ Page({
   /* 生命周期函数--监听页面加载 */
   onLoad(res) {
     console.log("ShowNote onLoad");
-    this.data = require("../api/api.js").rendering(this); //对data引入深度代理以实现渲染自动化
+    this.data = require("../api/deepProxy.js").rendering(this); //对data引入深度代理以实现渲染自动化
     wx.hideLoading();
     var bgiCurrent = wx.getStorageSync("bgiCurrent");
     if (this.data.current !== bgiCurrent) this.data.current = bgiCurrent;
     wx.removeStorageSync("item_to_edit");
-    var note = wx.getStorageSync("note");
-    note.forEach((ele, index, origin) => {
-      ele.id = index;
+    let note = wx.getStorageSync("note");;
+    note.forEach((ele, index) => {
       ele.note.record.forEach((ele, id) => {
         ele.record_index = id;
         ele.opacity = 1;
@@ -50,7 +49,7 @@ Page({
       ele.style.bgc = "rgba(255, 255, 255, 0.5)";
     });
     this.data.note = note;
-    console.log("当前记事渲染状况", this.data.note);
+    console.log("当前记事渲染状况", this.data.note || "为空");
   },
 
   /* 生命周期函数--监听页面显示 */
@@ -306,22 +305,22 @@ Page({
                   setTimeout(() => {
                     if (that.data.note[index].style.opacity <= 0) {
                       wx.hideLoading();
-                      that.data.note.splice(index, 1);
-                      if (!!note.length) {
-                        note.forEach((ele, index, origin) => {
-                          if (ele.id !== index) {
-                            ele.id = index;
-                            ele.style.marginTop = index * 9.5;
-                          }
-                        });
-                      }
-                      wx.setStorageSync("note", that.data.note);
+                      let storage = wx.getStorageSync("note");
+                      storage.splice(index, 1);
+                      if (storage.length > 0) {
+                        storage.forEach((ele, index) => { if (ele.id !== index) ele.id = index; });
+                        let note = JSON.parse(JSON.stringify(that.data.note));
+                        note.splice(index , 1);
+                        note.forEach((ele, index) => { if (ele.id !== index) ele.id = index });
+                        that.data.note = note;
+                      }else that.data.note = [];
+                      wx.setStorageSync("note", storage);
                       wx.showToast({
                         title: "当前记事已删除",
                         image: "../images/success.png",
                         mask: true,
                         complete(res) {
-                          if (!note.length) {
+                          if (!storage.length) {
                             setTimeout(() => {
                               wx.showModal({
                                 title: "读记事",
@@ -387,27 +386,22 @@ Page({
       if (label === "photo") label = "image";
       this.data.sw = label;
       this.data.title = this.data.note[index].note.title;
-      var note = this.data.note[index].note;
+      let note = JSON.parse(JSON.stringify(this.data.note[index].note));
       if (note.text.content.length > 0) this.data.text = note.text;
       if (note.record.length > 0) {
         that.data.playback = [];
-        note.record.forEach((ele, id) => {;
-          that.data.playback.push({
-            record_index: id,
-            url: ele.url,
-            duration: ele.duration,
-            opacity: 1
-          })
+        note.record.forEach((ele, id) => {
+          ele.record_index = id,
+          ele.opacity = 1;
         });
+        that.data.playback = note.record;
+        console.log(that.data.playback);
       }
       if (note.photo.length > 0) {
-        that.data.img = [];
         note.photo.forEach((ele, id) => {
-          that.data.img.push({
-            photo_index: id,
-            url: ele.url
-          })
+          ele.photo_index = id;
         });
+        that.data.img = note.photo;
       }
       if (note.video.length > 0) this.data.video = note.video;
     } else {
@@ -500,7 +494,10 @@ Page({
     delete this.data.playback;
     delete this.data.img;
     delete this.data.video;
-    innerAudioContext.stop();
+    if ("timerQueue" in this) {
+      if (this.timerQueue.length > 0) innerAudioContext.destroy();
+      for (let value of this.timerQueue) clearTimeout(value);
+    }
   },
   //记事文本的操作
   getTextInfo(res) {
@@ -530,31 +527,31 @@ Page({
       this.data.playback[index].opacity = 1;
     }
     if ("timerQueue" in this) {
-      for (let i = this.timerQueue.length - 1; i > 0; i--) clearTimeout(this.timerQueue[i]);
+      innerAudioContext.destroy();
+      for (let value of this.timerQueue) clearTimeout(value);
       this.data.playback.forEach((ele, id, origin) => {
-        if (id !== index && ele.opacity < 1) this.data.playback[index].opacity = 1;
+        if (id !== index && ele.opacity < 1) this.data.playback[id].opacity = 1;
       });
     } else this.timerQueue = [];
-    innerAudioContext.autoplay = "true";
+    innerAudioContext.autoplay = true;
     innerAudioContext.src = this.data.playback[index].url;
-    innerAudioContext.onCanplay(() => {
-      (function breathingEffection() {
-        if (that.data.playback[index].opacity >= 1) that.flag = true;
-        if (that.data.playback[index].opacity <= 0.3) that.flag = false;
-        var timer = setTimeout(() => {
-          if (new Date().getTime() - timeStamp < that.data.playback[index].duration - 35) {
-            if (that.flag) {
-              that.data.playback[index].opacity -= 0.025;
-            } else that.data.playback[index].opacity += 0.025;
-            breathingEffection();
-          } else {
-            that.data.playback[index].opacity = 1;
-            delete that.flag;
-          }
-        }, 35);
-        if (that.timerQueue.indexOf(timer) === -1) that.timerQueue.push(timer);
-      })();
-    });
+    (function breathingEffection() {
+      if (that.data.playback[index].opacity >= 1) that.flag = true;
+      if (that.data.playback[index].opacity <= 0.3) that.flag = false;
+      var timer = setTimeout(() => {
+        if (new Date().getTime() - timeStamp < that.data.playback[index].duration - 35) {
+          if (that.flag) {
+            that.data.playback[index].opacity -= 0.025;
+          } else that.data.playback[index].opacity += 0.025;
+          breathingEffection();
+        } else {
+          that.data.playback[index].opacity = 1;
+          that.timerQueue.splice(that.timerQueue.indexOf(timer), 1);
+          delete that.flag;
+        }
+      }, 35);
+      if (that.timerQueue.indexOf(timer) === -1) that.timerQueue.push(timer);
+    })();
   },
   //记事图片的操作
   getImageInfo(res) {
@@ -626,8 +623,8 @@ Page({
   },
   //记事视频的操作
   getVideoInfo(res) {
+    var that = this;
     function saveVideo() {
-      var that = this;
       wx.showModal({
         title: "读记事",
         content: "是否保存当前视频到本地？",
@@ -699,7 +696,7 @@ Page({
       var whichCanShow = [];
       if (this.data.text) whichCanShow.push("text");
       if (this.data.playback) whichCanShow.push("voice");
-      if (this.data.img) whichCanShow.push("Video");
+      if (this.data.img) whichCanShow.push("image");
       if (this.data.video) whichCanShow.push("video");
       this.whichCanShow = whichCanShow;
       anchor[2] = [res.touches[0].pageY, new Date().getTime()];
@@ -707,7 +704,7 @@ Page({
       delete this.tagA;
       delete this.tagB;
       var moveDistance = (res.changedTouches[0].pageY - anchor[2][0]) * SWT;
-      if (Math.abs(moveDistance) >= 187.5 && new Date().getTime() - anchor[2][1] < 2500) {
+      if (Math.abs(moveDistance) >= 187.5 && new Date().getTime() - anchor[2][1] < 1000) {
         var whichShowNow = this.whichShowNow;
         var whichCanShow = this.whichCanShow;
         var index = whichCanShow.indexOf(whichShowNow);

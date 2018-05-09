@@ -99,7 +99,7 @@
         <swiper class="image_cp" circular="true"
             indicator-dots="true" indicator-active-color="#fff">
           <swiper-item class="image_cp" id="images_{{item.photo_index}}"
-            wx:for="{{img}}" wx:key="{{item.photo_index}}" wx:for-item="item" bindtap="getImageInfo">
+            wx:for="{{img}}" wx:key="{{item.photo_index}}" wx:for-item="item" bindlongpress="getImageInfo">
             <image class="image_cp" src="{{item.url}}" mode="aspectFit"></image>
           </swiper-item>
         </swiper>

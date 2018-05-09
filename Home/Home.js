@@ -20,7 +20,7 @@ const SWT = 750 / wx.getSystemInfoSync().screenWidth;
       /* 生命周期函数--监听页面加载 */
       onLoad (res) {
         console.log("Home onLoad");
-        this.data = require("../api/api.js").rendering(this);
+        this.data = require("../api/deepProxy.js").rendering(this);
         var bgiCurrent = wx.getStorageSync("bgiCurrent");
         if (this.data.current !== bgiCurrent) this.data.current = bgiCurrent;
       },
