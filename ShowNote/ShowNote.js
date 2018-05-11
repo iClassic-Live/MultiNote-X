@@ -60,13 +60,11 @@ Page({
       if (this.data.duration !== 500) this.data.duration = 500;
     } else this.data.current = bgiCurrent;
   },
-
   /* 生命周期函数--监听页面初次渲染完成 */
   onReady(res) {
     console.log("ShowNote onReady");
     if (this.data.duration !== 500) this.data.duration = 500;
   },
-
   /* 生命周期函数--监听页面隐藏 */
   onHide(res) {
     console.log("ShowNote onHide");
@@ -79,12 +77,13 @@ Page({
 
 /* 自定义用户交互逻辑 */
 
-
   //记事检索功能
   search(res) {
     var that = this;
     function getResult() {
-      var content = that.data.input.split("");
+      if (that.data.input !== undefined) {
+        var content = that.data.input.split("");
+      }else content = [];
       if (content.length > 0) {
         content.forEach((ele, index) => {
           if ("*.?+$^[](){}|\\/".split("").indexOf(ele) !== -1) content[index] = "\\" + ele;
@@ -208,6 +207,7 @@ Page({
     } else if (res.type === "touchend" && this.tagB) {
       delete this.tagA;
       delete this.tagB;
+      delete anchor[1];
       (function showOff() {
         setTimeout(() => {
           var style = that.data.note[index].style;
@@ -257,6 +257,7 @@ Page({
   editNote(res) {
     var that = this;
     var id = res.currentTarget.id.match(/\d+/g)[0];
+    this.hideMenu();
     this.data.note[id].style.bgc = "#f00";
     this.data.note[id].style.fontColor = "#fff";
     wx.showModal({
@@ -310,8 +311,8 @@ Page({
                       if (storage.length > 0) {
                         storage.forEach((ele, index) => { if (ele.id !== index) ele.id = index; });
                         let note = JSON.parse(JSON.stringify(that.data.note));
-                        note.splice(index , 1);
-                        note.forEach((ele, index) => { if (ele.id !== index) ele.id = index });
+                        note.splice(index, 1);
+                        note.forEach((ele, index) => { if (ele.id !== index) ele.id = index; });
                         that.data.note = note;
                       }else that.data.note = [];
                       wx.setStorageSync("note", storage);
@@ -395,7 +396,6 @@ Page({
           ele.opacity = 1;
         });
         that.data.playback = note.record;
-        console.log(that.data.playback);
       }
       if (note.photo.length > 0) {
         note.photo.forEach((ele, id) => {
@@ -461,24 +461,35 @@ Page({
       anchor[0] = res.changedTouches[0].pageX;
     } else if (res.type === "touchmove") {
       var moveDistance = (res.changedTouches[0].pageX - anchor[0]) * SWT;
-      if (Math.abs(moveDistance) > 37.5 && !this.tagA) {
-        this.tagA = true;
+      if (Math.abs(moveDistance) > 37.5) {
         if (moveDistance > 0) {
           this.data.bgiChange = 1;
         } else this.data.bgiChange = -1;
-      }
+      }else this.data.bgiChange = 0;
     } else if (res.type === "touchend") {
-      delete this.tagA;
-      anchor[0] = null;
-      if (this.data.bgiChange === 1) {
-        if (this.data.current + 1 < this.data.bgiQueue.length) {
-          this.data.current += 1;
+      delete anchor[0];
+      if (this.data.bgiChange !== 0) {
+        switch (this.data.bgiChange) {
+          case 1: {
+            if (this.data.current < this.data.bgiQueue.length - 1) {
+              this.data.current += 1;
+            } else {
+              this.data.autoplay = true;
+              this.data.autoplay = false;
+              this.data.current = 0;
+            }
+            break;
+          }
+          case -1: {
+            if (this.data.current > 0) {
+              this.data.current -= 1;
+            } else this.data.current = this.data.bgiQueue.length - 1;
+            break;
+          }
         }
-      } else if (this.data.bgiChange === -1 && this.data.current - 1 >= 0) {
-        this.data.current -= 1;
+        wx.setStorageSync("bgiCurrent", this.data.current);
+        this.data.bgiChange = 0;
       }
-      wx.setStorageSync("bgiCurrent", this.data.current);
-      this.data.bgiChange = 0;
     }
   },
   //记事的新建
@@ -605,9 +616,6 @@ Page({
                 },
                 fail(res) { failure(); }
               });
-            },
-            complete(res) {
-              console.log("authorize");
             }
           });
         } else saveImage();
@@ -671,9 +679,6 @@ Page({
                 },
                 fail(res) { failure(); }
               });
-            },
-            complete(res) {
-              console.log("authorize");
             }
           });
         } else saveVideo();
@@ -705,6 +710,7 @@ Page({
       delete this.tagB;
       var moveDistance = (res.changedTouches[0].pageY - anchor[2][0]) * SWT;
       if (Math.abs(moveDistance) >= 187.5 && new Date().getTime() - anchor[2][1] < 1000) {
+        delete anchor[2];
         var whichShowNow = this.whichShowNow;
         var whichCanShow = this.whichCanShow;
         var index = whichCanShow.indexOf(whichShowNow);

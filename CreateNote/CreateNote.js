@@ -1229,24 +1229,35 @@ Page({
       this.anchor = res.changedTouches[0].pageX;
     } else if (res.type === "touchmove") {
       var moveDistance = (res.changedTouches[0].pageX - this.anchor) * SWT;
-      if (Math.abs(moveDistance) > 37.5 && !this.tagA) {
-        this.tagA = true;
+      if (Math.abs(moveDistance) > 37.5) {
         if (moveDistance > 0) {
           this.data.bgiChange = 1;
         } else this.data.bgiChange = -1;
-      }
+      }else this.data.bgiChange = 0;
     } else if (res.type === "touchend") {
-      delete this.tagA;
       delete this.anchor;
-      if (this.data.bgiChange === 1) {
-        if (this.data.current + 1 < this.data.bgiQueue.length) {
-          this.data.current += 1;
+      if (this.data.bgiChange !== 0) {
+        switch(this.data.bgiChange) {
+          case 1: {
+            if (this.data.current < this.data.bgiQueue.length - 1) {
+              this.data.current += 1;
+            }else {
+              this.data.autoplay = true;
+              this.data.autoplay = false;
+              this.data.current = 0;
+            }
+            break;
+          }
+          case -1: {
+            if (this.data.current > 0) {
+              this.data.current -= 1;
+            }else this.data.current = this.data.bgiQueue.length - 1;
+            break;
+          }
         }
-      } else if (this.data.bgiChange === -1 && this.data.current - 1 >= 0) {
-        this.data.current -= 1;
+        wx.setStorageSync("bgiCurrent", this.data.current);
+        this.data.bgiChange = 0;
       }
-      wx.setStorageSync("bgiCurrent", this.data.current);
-      this.data.bgiChange = 0;
     }
   },
 

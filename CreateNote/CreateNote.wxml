@@ -1,6 +1,6 @@
 <!-- 写记事页 -->
 <scroll-view id="background">
-  <swiper current="{{current}}" circular="true" duration="{{duration}}">
+  <swiper current="{{current}}" circular="true" autoplay="{{autoplay}}" interval="0" duration="{{duration}}">
     <swiper-item wx:for="{{bgiQueue}}" wx:for-item="item" wx:key="bgiQueue">
       <image mode="aspectFill" src="{{item}}"></image>
     </swiper-item>
