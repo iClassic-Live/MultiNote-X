@@ -12,25 +12,25 @@
   <view class="menu" wx:if="{{noting === 'menu'}}">
     <view class="title">
     标题：
-    <view class="input">
-      <input value="{{title}}" placeholder="{{titleDefault}}" bindfocus="titleContent" bindinput="titleContent" bindblur="titleContent"></input>
-    </view>
+      <view class="input">
+        <input value="{{title}}" placeholder="{{titleDefault}}" bindfocus="titleContent" bindinput="titleContent" bindblur="titleContent"></input>
+      </view>
     </view>
     <view class="selection">
       <view class="text sel" bindtap="getTextFn" bindlongpress="getTextFn" style="border:9rpx solid {{text.content.length > 0 ? 'red' : 'green'}}">
         <image src="../images/text.png"></image>
       </view>
-      <view class="voice sel" bindtap="getVoiceFn" bindlongpress="getVoiceFn" style="border:9rpx solid {{playback.length > 0 && playback.length < 5  ? 'orange': playback.length === 5 ? 'red' : 'green'}}">
+      <view class="voice sel" bindtap="getVoiceFn" bindlongpress="getVoiceFn" style="border:9rpx solid {{playback.length > 0 ? 'red' : 'green'}}">
         <image src="../images/voice.png"></image>
       </view>
-      <view class="photo sel" bindtap="getPhotoFn" bindlongpress="getPhotoFn" style="border:9rpx solid {{img.length > 0 && img.length < 5  ? 'orange': img.length === 5 ? 'red' : 'green'}}">
+      <view class="photo sel" bindtap="getPhotoFn" bindlongpress="getPhotoFn" style="border:9rpx solid {{img.length && img.length < 5  ? 'orange': img.length === 5 ? 'red' : 'green'}}">
         <image src="../images/image.png"></image>
       </view>
-      <view class="shoot sel"bindtap="getShootFn" bindlongpress="getShootFn" style="border:9rpx solid {{video.length > 0 ? 'red' : 'green'}}">
+      <view class="shoot sel"bindtap="getShootFn" bindlongpress="getShootFn" style="border:9rpx solid {{video.length ? 'red' : 'green'}}">
         <image src="../images/video.png"></image>
       </view>
       <view class="save_cancel sel" bindtap="save_cancel">
-        <image src="../images/{{ ((( text.content.length > 0 || playback.length > 0) || img.length > 0) || video.length > 0) ? 'save' : 'cancel' }}.png"></image>
+        <image src="../images/{{ title.length && (((text.content.length || playback.length) || img.length) || video.length) ? 'save' : 'cancel' }}.png"></image>
       </view>
     </view>
     <view class="bgiChange">
@@ -72,7 +72,7 @@
       <view class="photo sel" wx:if="{{noting === 'photo'}}">
         <swiper wx:if="{{ !ifDeleting }}" current="{{imgCurrent}}" circular="true"
         indicator-dots="true" indicator-active-color="#fff" bindanimationfinish="setImgCurrent">
-          <swiper-item id="photo_{{item.photo_index}}" wx:for="{{img}}" wx:for-item="item" wx:key="{{item.photo}}" bindtap="check_deletePhoto" bindlongpress="check_deletePhoto">
+          <swiper-item id="photo_{{item.photo_index}}" wx:for="{{img}}" wx:for-item="item" wx:key="{{item.url}}" bindtap="check_deletePhoto" bindlongpress="check_deletePhoto">
             <image id="photo_{{item.photo_index}}" mode="aspectFit" src="{{item.url}}"></image>
           </swiper-item>
         </swiper>

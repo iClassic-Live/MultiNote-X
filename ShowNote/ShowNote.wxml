@@ -15,7 +15,7 @@
 
     <view class="search">
       <view class="input">
-        <input placeholder="记事检索" value="{{input}}" bindfocus="search" bindinput="search" bindblur="search"></input>
+        <input placeholder="记事检索" value="{{input}}" focus="{{searching}}" bindfocus="search" bindinput="search"></input>
       </view>
       <view class="setSearchType" bindtap="search">
         <button>{{searchType ? "C" : "T"}}</button>
@@ -23,7 +23,7 @@
     </view>
 
     <scroll-view class="list" scroll-y="true" scroll-into-view="{{target}}"
-      bindtap="{{ !searching ? 'cancel' : '' }}">
+      bindtap="{{ searching ? 'backToOverview' : 'cancel' }}">
       <view class="item" id="n{{item.id}}" 
         wx:for="{{searching ? result : note}}"wx:key="{{item.id}}" wx:for-item="item"
         style="opacity:{{item.style.opacity}}"
@@ -36,7 +36,7 @@
           wx:if="{{!searching}}"
           style="left:-{{item.style.pullOutDelete === undefined ? 120 : item.style.pullOutDelete  }}rpx"
           bindtap="deleteNote">删除</view>
-        <view class="menu" wx:if="{{!searching}}" style="right:-{{ item.style.pullOutMenu === undefined ? 325 : item.style.pullOutMenu }}rpx">
+        <view class="menu" wx:if="{{!searching}}" style="right:-{{ item.style.pullOutMenu === undefined ? 325 : item.style.pullOutMenu }}rpx;">
           <image id="text_{{item.id}}"
             mode="aspectFit" src="../images/text.png" bindtap="getContent"></image>
           <image id="voice_{{item.id}}"
@@ -49,15 +49,15 @@
       </view>
     </scroll-view>
 
-    <view class="bottom" style="display:{{ searching ? 'none' : 'block' }}" bindtap="cancel">
-      <view class="bgiChange">
+    <view class="bottom" bindtap="{{searching ? 'backToOverview' : 'cancel'}}">
+      <view class="bgiChange" style="display:{{ searching ? 'none' : 'block' }}">
         <view class="bgiChange_cp">
           <image src="../images/bgiChange.png" style="left:{{ 50 * bgiChange }}%" 
             bindtouchstart="changeBackgroundImage" bindtouchmove="changeBackgroundImage"
             bindtouchend="changeBackgroundImage"></image>
         </view>
       </view>
-      <view class="new">
+      <view class="new" style="display:{{ searching ? 'none' : 'block' }}">
         <image src="../images/new.png" bindtap="createNote"></image>
       </view>
     </view>

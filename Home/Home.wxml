@@ -1,10 +1,6 @@
 <!-- 启动页 -->
 <scroll-view id="background">
-  <swiper current="{{current}}" circular="true" duration="{{duration}}">
-    <swiper-item wx:for="{{bgiQueue}}" wx:for-item="item" wx:key="bgiQueue">
-      <image mode="aspectFill" src="{{item}}"></image>
-    </swiper-item>
-  </swiper>
+  <image mode="aspectFill" src="{{backgroundImage}}"></image>
 </scroll-view> 
 
 <view id="mainFn">

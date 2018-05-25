@@ -8,11 +8,6 @@ const SWT = 750 / wx.getSystemInfoSync().screenWidth;
       data: {
         //应用版本号显示
         version: getApp().globalData.version,
-
-        //背景图切换功能初始化
-        duration: 0, //背景图滑块切换的过渡时间
-        current: wx.getStorageSync("bgiCurrent") || 0, //背景图所在滑块序号
-        bgiQueue: getApp().globalData.bgiQueue, //背景图地址队列
       },
 
     /* 页面默认功能 */
@@ -20,24 +15,18 @@ const SWT = 750 / wx.getSystemInfoSync().screenWidth;
       /* 生命周期函数--监听页面加载 */
       onLoad (res) {
         console.log("Home onLoad");
-        this.data = require("../api/deepProxy.js").rendering(this);
-        var bgiCurrent = wx.getStorageSync("bgiCurrent");
-        if (this.data.current !== bgiCurrent) this.data.current = bgiCurrent;
+        this.data = require("../api/deepProxy.js").rendering.call(this);
+        this.data.backgroundImage = getApp().globalData.bgiQueue[wx.getStorageSync("bgiCurrent")];
       },
 
       /* 生命周期函数--监听页面显示 */
       onShow (res){
         console.log("Home onShow");
-        var bgiCurrent = wx.getStorageSync("bgiCurrent");
-        if (this.data.current === bgiCurrent) {
-          if (this.data.current !== 500) this.data.duration = 500;
-        } else this.data.current = bgiCurrent;
       },
 
       /* 生命周期函数--监听页面初次渲染完成 */
       onReady (res) {
         console.log("Home onReady");
-        if (this.data.current !== 500) this.data.duration = 500;
       },
 
       /* 生命周期函数--监听页面卸载 */

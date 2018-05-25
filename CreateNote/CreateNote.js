@@ -21,6 +21,7 @@ var interval, timerA, timerB, timerC; //承接定时器和计时器的的公用�
 //视频记事初始化
 var shootTimer; //录像时长计时器的标识
 
+
 /* 页面构造器：页面功能初始化 */
 Page({
 
@@ -71,7 +72,7 @@ Page({
   onLoad(options) {
     console.log("CreateNote onLoad");
     wx.hideLoading();
-    this.data = require("../api/deepProxy.js").rendering(this);
+    this.data = require("../api/deepProxy.js").rendering.call(this);
     var bgiCurrent = wx.getStorageSync("bgiCurrent");
     if (this.data.current !== bgiCurrent) this.data.current = bgiCurrent;
     wx.getSetting({  //获取录音功能、相机功能和保存到相册功能的权限获取情况
@@ -198,19 +199,18 @@ Page({
     var note = JSON.parse(JSON.stringify(item.note));
     this.data.title = note.title;
     this.data.text = note.text;
-    note.record.forEach((ele, index) => {
+    this.data.playback = note.record.map((ele, index) => {
       ele.record_index = index,
       ele.opacity = 1;
+      return ele;
     });
-    this.data.playback = note.record;
-    note.photo.forEach((ele, index) => {
+    this.data.img = note.photo.map((ele, index) => {
       ele.photo_index = index;
+      return ele;
     });
-    this.data.img = note.photo;
     this.data.video = note.video;
 
     //预注册录音开始事件
-    var that = this;
     recorderManager.onStart((res) => {
       if (that.tag) { //当录音开始进程偷跑时截停
         recorderManager.stop();
@@ -344,12 +344,9 @@ Page({
           image: "../images/warning.png"
         });
       }
-      (function trim() {
-        if (/\s+/g.test(item.note.title[item.note.title.length - 1])) {
-          item.note.title = item.note.title.substring(0, item.note.title.length - 1);
-          trim();
-        }
-      })()
+      while (/\s+/g.test(item.note.title[item.note.title.length - 1])) {
+        item.note.title = item.note.title.substring(0, item.note.title.length - 1);
+      }
       this.data.title = item.note.title;
     }
   },
@@ -482,32 +479,8 @@ Page({
         content: "是否清空语音记事？",
         success(res) {
           if (res.confirm) {
-            var nums = item.note.record.length;
-            var sign = false;
-            item.note.record.forEach((ele, index, origin) => {
-              if (/store/.test(ele.url)) {
-                wx.removeSavedFile({
-                  filePath: ele.url,
-                  complete(res) {
-                    nums -= 1;
-                    sign = true;
-                  }
-                });
-              } else nums -= 1;
-            });
             item.note.record = [];
             that.data.playback = [];
-            (function waiting() {
-              setTimeout(() => {
-                if (nums > 0) {
-                  waiting()
-                } else if (sign) {
-                  let note = wx.getStorageSync("note");
-                  note[wx.getStorageSync("item_to_edit")].note.record = [];
-                  wx.setStorageSync("note", note);
-                }
-              });
-            })();
           }
         }
       });
@@ -515,7 +488,6 @@ Page({
   },
   //开始语音记事
   startRecord(res) {
-    var that = this;
     if (item.note.record.length < 5) {
       this.tag = false;
       recorderManager.start({
@@ -575,24 +547,23 @@ Page({
     } else if (res.type === "longpress") {
       wx.showModal({
         title: "语音记事",
-        content: "警告：删除操作将无法撤回，仍然删除本语音？",
+        content: "是否删除本条语音？",
         success(res) {
           if (res.confirm) {
-            //相应语音的移除函数
-            function deleteRecord() {
+            wx.showLoading({
+              title: "正在删除本语音",
+              mask: true
+            });
+            (function deleteRecord() {
               that.data.playback[index].opacity -= 0.1;
               setTimeout(() => {
                 if (that.data.playback[index].opacity <= 0) {
                   wx.hideLoading();
                   item.note.record.splice(index, 1);
-                  var playback = [];
-                  item.note.record.forEach((ele, id) => {
-                    playback.push({
-                      record_index: id,
-                      url: ele.url,
-                      duration: ele.duration,
-                      opacity: 1
-                    })
+                  let playback = JSON.parse(JSON.stringify(item.note.record));
+                  playback.forEach((ele, id) => {
+                    ele.record_index = id;
+                    ele.opacity = 1;
                   });
                   that.data.playback = playback;
                   wx.showToast({
@@ -602,22 +573,7 @@ Page({
                   });
                 } else deleteRecord();
               }, 50)
-            }
-            wx.showLoading({
-              title: "正在删除本语音",
-              mask: true
-            });
-            if (/store/g.test(item.note.record[index].url)) {
-              wx.removeSavedFile({
-                filePath: item.note.record[index].url,
-                complete(res) {
-                  deleteRecord();
-                  var note = wx.getStorageSync("note");
-                  note[item.id] = item;
-                  wx.setStorageSync("note", note);
-                }
-              });
-            } else deleteRecord();
+            })()
           }
         }
       });
@@ -761,33 +717,9 @@ Page({
         title: "图片记事",
         content: "是否清空图片记事？",
         success(res) {
-          var nums = item.note.photo.length;
-          var sign;
           if (res.confirm) {
-            item.note.photo.forEach((ele, index, origin) => {
-              if (/store/.test(ele.url)) {
-                wx.removeSavedFile({
-                  filePath: ele.url,
-                  complete(res) {
-                    nums -= 1;
-                    sign = true;
-                  }
-                });
-              } else nums -= 1;
-            });
             item.note.photo = [];
             that.data.img = [];
-            (function waiting() {
-              setTimeout(() => {
-                if (nums > 0) {
-                  waiting()
-                } else if (sign) {
-                  let note = wx.getStorageSync("note");
-                  note[wx.getStorageSync("item_to_edit")].note.photo = item.note.photo;
-                  wx.setStorageSync("note", note);
-                }
-              });
-            })()
           }
         }
       });
@@ -804,63 +736,23 @@ Page({
     } else if (res.type === "longpress") {
       //相应照片的移除函数
       function deletePhoto() {
-        function deletion() {
-          var nums = 1;
-          if (/store/g.test(item.note.photo[index].url)) {
-            wx.removeSavedFile({
-              filePath: item.note.photo[index].url,
-              complete(res) { nums = 0; }
-            });
-          } else nums = 0;
-          item.note.photo.splice(index, 1);
-          let img = JSON.parse(JSON.stringify(that.data.img));
-          img.splice(index, 1);
-          img.forEach((ele, id) => {
-            if (ele.photo_index !== id) ele.photo_index = id;
-          });
-          that.data.img = img;
-          that.data.ifDeleting = true;
-          if (that.data.imgCurrent > 0) that.data.imgCurrent = that.data.imgCurrent - 1;
-          that.data.ifDeleting = false;
-          (function waiting() {
-            setTimeout(() => {
-              if (!nums && wx.getStorageSync("item_to_edit")) {
-                let note = wx.getStorageSync("note");
-                note[wx.getStorageSync("item_to_edit")].note.photo = item.note.photo;
-                wx.setStorageSync("note", note);
-                console.log("当前图片记事已预合并到总目录");
-              } else if (!!nums) waiting();
-            });
-          })()
-          wx.showToast({
-            title: "删除成功！",
-            image: "../images/success.png",
-            mask: true,
-            success(res) {
-              if (!item.note.photo.length) setTimeout(() => { that.data.noting = "menu"; }, 1500);
-            }
-          });
-        }
         wx.showModal({
           title: "图片记事",
-          content: "警告：删除操作将无法撤回，仍然删除本图片？",
+          content: "是否删除本条图片？",
           success(res) {
             if (res.confirm) {
-              wx.showLoading({
-                title: "正在删除本图片",
+              item.note.photo.splice(index, 1);
+              let img = JSON.parse(JSON.stringify(item.note.photo));
+              img.forEach((ele, id) => { ele.photo_index = id; });
+              that.data.img = img;
+              that.data.ifDeleting = true;
+              if (that.data.imgCurrent > 0) that.data.imgCurrent = that.data.imgCurrent - 1;
+              that.data.ifDeleting = false;
+              wx.showToast({
+                title: "删除成功！",
+                image: "../images/success.png",
                 mask: true
               });
-              if (/store/g.test(item.note.photo[index].url)) {
-                wx.removeSavedFile({
-                  filePath: item.note.photo[index].url,
-                  complete(res) {
-                    deletion();
-                    var note = wx.getStorageSync("note");
-                    note[item.id] = item;
-                    wx.setStorageSync("note", note);
-                  }
-                });
-              } else deletion();
             }
           }
         });
@@ -903,7 +795,7 @@ Page({
   },
   //实时获取图片展示当前滑块的索引
   setImgCurrent(res) {
-    this.data.mgCurrent = res.detail.current;
+    this.data.imgCurrent = res.detail.current;
   },
 
   /* 视频记事 */
@@ -977,16 +869,6 @@ Page({
         content: "是否清空视频记事？",
         success(res) {
           if (res.confirm) {
-            if (/store/g.test(item.note.video)) {
-              wx.removeSavedFile({
-                filePath: item.note.video,
-                complete(res) {
-                  let note = wx.getStorageSync("note");
-                  note[wx.getStorageSync("item_to_id")].note.video = "";
-                  wx.setStorageSync("note", note);
-                }
-              });
-            }
             item.note.video = "";
             that.data.video = "";
           }
@@ -994,7 +876,7 @@ Page({
       })
     }
   },
-  //视频记事查看功能的退出、保存到手机相册与删除
+  //视频记事保存到手机相册与删除
   videoPreview(res) {
     var that = this;
     wx.showActionSheet({
@@ -1003,7 +885,6 @@ Page({
         if (!res.tapIndex) {
           const videoControl = wx.createVideoContext(that.data.video);
           videoControl.pause();
-          console.log(that.data.video);
           wx.saveVideoToPhotosAlbum({
             filePath: that.data.video,
             success(res) {
@@ -1024,32 +905,20 @@ Page({
         } else {
           wx.showModal({
             title: "视频记事",
-            content: "警告：删除操作将不可撤回，仍然删除本视频？",
+            content: "是否删除本条视频？",
             success(res) {
               if (res.confirm) {
-                if (/store/g.test(item.note.video)) {
-                  wx.removeSavedFile({
-                    filePath: item.note.video,
-                    complete(res) {
-                      let note = wx.getStorageSync("note");
-                      note[wx.getStorageSync("item_to_id")].note.video = "";
-                      wx.setStorageSync("note", note);
-                    }
-                  });
-                }
                 item.note.video = "";
                 that.data.video = "";
                 wx.showToast({
                   title: "删除成功！",
                   image: "../images/success.png",
                   mask: true,
-                  success(res) {
-                    setTimeout(() => { that.data.noting = "menu"; }, 1500)
-                  }
+                  success(res) { setTimeout(() => { that.data.noting = "menu"; }, 1500); }
                 });
               }
             }
-          })
+          });
         }
       }
     });
@@ -1060,166 +929,168 @@ Page({
   save_cancel(res) {
     console.log("用户试图保存或取消当前记事");
     var that = this;
-    var canISave = false;
-    if ((item.note.title.length > 0) &&
-      ((item.note.text.content.length > 0
-        || item.note.record.length > 0)
-        || item.note.video.length > 0)) canISave = true;
-    if (canISave) {
-      console.log("保存前的记事存储状态：",
-        "\n记事标题：", item.note.title,
-        "\n记事文本：", item.note.text,
-        "\n语音记事：", item.note.record,
-        "\n图片记事：", item.note.photo,
-        "\n视频记事：", item.note.video);
-      wx.showModal({
-        title: "写记事",
-        content: "是否保存当前记事？",
-        success(res) {
-          if (res.confirm) {
-            wx.showLoading({
-              title: "正在保存记事！",
-              mask: true
-            });
-            var tag = new Proxy([0], {
-              set(target, key, value, receiver) {
-                if (parseInt(key) === 0 && value === 3) {
-                  var note = wx.getStorageSync("note");
-                  note[item.id] = item;
-                  wx.setStorageSync("note", note);
-                  console.log("成功保存当前记事并合并到总目录！");
-                  wx.showToast({
-                    title: "记事保存成功！",
-                    image: "../images/success.png",
-                    mask: true,
-                    success(res) {
-                      setTimeout(() => {
-                        wx.showLoading({
-                          title: "正在进入读记事",
-                          mask: true,
-                        });
-                        wx.redirectTo({ url: "../ShowNote/ShowNote" });
-                      }, 1500);
-                    }
-                  });
-                }
-                return Reflect.set(target, key, value, receiver);
-              }
-            });
-            if (item.note.record.length > 0) {
-              item.note.record.forEach((ele, index, origin) => {
-                if (/tmp/g.test(ele.url)) {
-                  console.log("开始保存第" + (index + 1) + "条语音");
-                  wx.saveFile({
-                    tempFilePath: ele.url,
-                    success(res) {
-                      ele.url = res.savedFilePath;
-                      console.log("第" + (index + 1) + "条语音保存成功");
-                    },
-                    fail(res) {
-                      wx.showToast({
-                        title: "语音" + (index + 1) + "保存失败",
-                        image: "../images/error.png"
-                      });
-                    },
-                    complete(res) { if (index === item.note.record.length - 1) tag[0] += 1; }
-                  });
-                } else if (index === item.note.record.length - 1) tag[0] += 1;
-              });
-            } else tag[0] += 1;
-            if (item.note.photo.length > 0) {
-              item.note.photo.forEach((ele, index, origin) => {
-                if (/tmp/g.test(ele.url)) {
-                  console.log("开始保存第" + (index + 1) + "张图片");
-                  wx.saveFile({
-                    tempFilePath: ele.url,
-                    success(res) {
-                      ele.url = res.savedFilePath;
-                      console.log("第" + (index + 1) + "张图片保存成功");
-                    },
-                    fail(res) {
-                      wx.showToast({
-                        title: "图片" + (index + 1) + "保存失败",
-                        image: "../images/error.png"
-                      });
-                    },
-                    complete(res) { if (index === item.note.photo.length - 1) tag[0] += 1; }
-                  });
-                } else if (index === item.note.photo.length - 1) tag[0] += 1;
-              });
-            } else tag[0] += 1;
-            if (item.note.video.length > 0 && /tmp/g.test(item.note.video)) {
-              console.log("开始保存视频");
-              wx.saveFile({
-                tempFilePath: item.note.video,
-                success(res) {
-                  item.note.video = res.savedFilePath;
-                  console.log("视频保存成功");
-                },
-                fail(res) {
-                  wx.showToast({
-                    title: "视频保存失败！",
-                    image: "../images/error.png"
-                  });
-                },
-                complete(res) { tag[0] += 1; }
-              })
-            } else tag[0] += 1;
-          } else {
-            wx.showModal({
-              title: "写记事",
-              content: "是否继续当前记事？",
-              success(res) {
-                if (res.cancel) {
-                  if (wx.getStorageSync("note").length > 0) {
-                    wx.showLoading({
-                      title: "正在进入读记事",
-                      mask: true,
+    if (item.note.title.length > 0 &&
+        [item.note.text.content, item.note.record,
+         item.note.photo, item.note.video].some(ele => { return ele.length > 0; })) {
+        wx.showModal({
+          title: "写记事",
+          content: "是否保存当前记事？",
+          success(res) {
+            if (res.confirm) {
+              wx.showLoading({ title: "正在保存记事！" });
+              function deletion() {
+                wx.showLoading({ title: "正在保存记事！" });
+                if (wx.getStorageInfoSync().keys.indexOf("item_to_edit") !== -1) {
+                  let note = wx.getStorageSync("note")[wx.getStorageSync("item_to_edit")].note;
+                  let deletionQueue = [];
+                  note.record.forEach((el, index) => {
+                    let condition = item.note.record.every(target => {
+                      return target.url !== el, url;
                     });
-                    wx.redirectTo({ url: "../ShowNote/ShowNote" });
-                  } else {
-                    wx.showLoading({
-                      title: "正在返回启动页",
-                      mask: true,
+                    if (/store/.test(el.url) && condition) { deletionQueue.push(el.url); }
+                  });
+                  note.photo.forEach((el, index) => {
+                    let condition = item.note.photo.every(target => {
+                      return target.url !== el, url;
                     });
-                    wx.redirectTo({ url: "../Home/Home" });
+                    if (/store/.test(el.url) && condition) deletionQueue.push(el.url);
+                  });
+                  if (/store/.test(note.video) && item.note.video !== note.video) {
+                    deletionQueue.push(note.video);
                   }
+                  if (deletionQueue.length > 0) {
+                    let rest_to_delete = deletionQueue.length;
+                    deletionQueue.forEach(el => {
+                      wx.removeSavedFile({
+                        filePath: el,
+                        complete(res) {
+                          rest_to_delete -= 1;
+                          if (rest_to_delete === 0) {
+                            //重写storage
+                            wx.hideLoading();
+                            let storage = wx.getStorageSync("note");
+                            storage[item.id] = item;
+                            wx.setStorageSync("note", storage);
+                            wx.redirectTo({ url: "../ShowNote/ShowNote" });
+                          }
+                        }
+                      })
+                    })
+                  } else {//重写storage
+                    wx.hideLoading();
+                    let storage = wx.getStorageSync("note");
+                    storage[item.id] = item;
+                    wx.setStorageSync("note", storage);
+                    wx.redirectTo({ url: "../ShowNote/ShowNote" });
+                  }
+                } else {//重写storage
+                  wx.hideLoading();
+                  let storage = wx.getStorageSync("note");
+                  storage[item.id] = item;
+                  wx.setStorageSync("note", storage);
+                  wx.redirectTo({ url: "../ShowNote/ShowNote" });
                 }
+                wx.removeStorageSync("item_to_edit");
               }
-            })
+              var file = [];
+              item.note.record.forEach((ele, index) => {
+                if (/tmp/.test(ele.url)) file.push({ noteType: "record", index: index, url: ele.url });
+              });
+              item.note.photo.forEach((ele, index) => {
+                if (/tmp/.test(ele.url)) file.push({ noteType: "photo", index: index, url: ele.url });
+              });
+              if (/tmp/.test(item.note.video)) {
+                file.push({ noteType: "video", url: item.note.video });
+              }
+              if (file.length > 0) {
+                var failToSave = [];
+                var rest_to_save = file.length;
+                file.forEach(ele => {
+                  wx.saveFile({
+                    tempFilePath: ele.url,
+                    success(res) {
+                      if (ele.noteType !== "video") {
+                        item.note[ele.noteType][ele.index].url = res.savedFilePath;
+                        if (ele.noteType === "record") {
+                          that.data.playback[ele.index].url = res.savedFilePath;
+                        } else that.data.img[ele.index].url = res.savedFilePath;
+                      } else {
+                        item.note.video = res.savedFilePath;
+                        that.data.video = res.savedFilePath;
+                      }
+                    },
+                    fail(res) { failToSave.push(ele); },
+                    complete(res) {
+                      rest_to_save -= 1;
+                      if (rest_to_save === 0) {
+                        if (failToSave.length > 0) {
+                          let content = [];
+                          failToSave.forEach(el => {
+                            switch (el.noteType) {
+                              case "record": {
+                                content.push("第" + (ele.index + 1) + "条语音记事");
+                                break;
+                              }
+                              case "photo": {
+                                content.push("第" + (ele.index + 1) + "张图片记事");
+                                break;
+                              }
+                              case "video": {
+                                content.push("视频记事")
+                                break;
+                              }
+                            }
+                          });
+                          wx.hideLoading();
+                          wx.showModal({
+                            title: "写记事",
+                            content: content.join("、") + "保存失败，是否继续当前保存进程？",
+                            success(res) {
+                              if (res.cancel) {
+                                wx.showModal({
+                                  title: "写记事",
+                                  content: "是否取消当前记事？",
+                                  success(res) {
+                                    if (res.confirm) {
+                                      //启动返回进程
+                                      if (wx.getStorageSync("note").length > 0) {
+                                        wx.redirectTo({ url: "../ShowNote/ShowNote" });
+                                      } else wx.redirectTo({ url: "../Home/Home" });
+                                    }
+                                  }
+                                })
+                              } else deletion();
+                            }
+                          });
+                        } else deletion();
+                      }
+                    }
+                  })
+                });
+              }else deletion()
+            }else {
+              //启动返回进程;
+              wx.removeStorageSync("item_to_edit");
+              if (wx.getStorageSync("note").length > 0) {
+                wx.redirectTo({ url: "../ShowNote/ShowNote" });
+              } else wx.redirectTo({ url: "../Home/Home" });
+            }
           }
-        }
-      });
-    } else {
+        });
+    }else {
       wx.showModal({
         title: "写记事",
         content: "是否取消当前记事？",
         success(res) {
           if (res.confirm) {
-            if (wx.getStorageInfoSync().keys.indexOf("note") !== -1) {
-              if (wx.getStorageSync("note").length > 0) {
-                wx.showLoading({
-                  title: "正在进入读记事",
-                  mask: true,
-                });
-                wx.redirectTo({ url: "../ShowNote/ShowNote" });
-              } else {
-                wx.showLoading({
-                  title: "正在返回启动页",
-                  mask: true,
-                });
-                wx.redirectTo({ url: "../Home/Home" });
-              }
-            } else {
-              wx.showLoading({
-                title: "正在返回启动页",
-                mask: true,
-              });
-              wx.redirectTo({ url: "../Home/Home" });
-            }
+            //启动返回进程
+            wx.removeStorageSync("item_to_edit");
+            if (wx.getStorageSync("note").length > 0) {
+              wx.redirectTo({ url: "../ShowNote/ShowNote" });
+            } else wx.redirectTo({ url: "../Home/Home" });
           }
         }
-      })
+      });
     }
   },
 
@@ -1233,10 +1104,10 @@ Page({
         if (moveDistance > 0) {
           this.data.bgiChange = 1;
         } else this.data.bgiChange = -1;
-      }else this.data.bgiChange = 0;
+      }else this.data.bgiChange = moveDistance / 37.5;
     } else if (res.type === "touchend") {
       delete this.anchor;
-      if (this.data.bgiChange !== 0) {
+      if (Math.abs(this.data.bgiChange) === 1) {
         switch(this.data.bgiChange) {
           case 1: {
             if (this.data.current < this.data.bgiQueue.length - 1) {
@@ -1256,8 +1127,8 @@ Page({
           }
         }
         wx.setStorageSync("bgiCurrent", this.data.current);
-        this.data.bgiChange = 0;
       }
+      if (this.data.bgiChange !==0) this.data.bgiChange = 0;
     }
   },
 
@@ -1453,7 +1324,7 @@ Page({
       } else stopShoot();
     }
   },
-  //更换设想模式：拍照、录像
+  //摄像模式的切换：拍照、录像
   changeMode(res) {
     if (this.data.changeMode === "../images/shoot.png") {
       this.data.cameraSet = "../images/shoot.png";

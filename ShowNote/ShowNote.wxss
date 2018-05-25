@@ -143,7 +143,7 @@ page {
 
     /* 底部 */
       .overview .bottom {
-        position: relative;
+         position: relative; 
         height: 12.5%;
         width: 100%;
         display: flex;
@@ -155,17 +155,15 @@ page {
         left: 20%;
         height: 100%;
         width: 12.5vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
       }
       .bgiChange .bgiChange_cp {
+        margin: 25% 25%;
         height: 10vw;
         width: 10vw;
         background: radial-gradient(circle ,rgba(255, 255, 255, 0.4), #00f);
         border-radius: 50%;
       }
-      .bgiChange image {
+      .bgiChange_cp image {
         position: relative;
         height: 100%;
         width: 100%;

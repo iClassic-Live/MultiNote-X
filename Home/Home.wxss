@@ -7,13 +7,6 @@
   z-index: -1;
   background-color: #000;
 }
- #background swiper {
-  height: 100%;
-  width: 100%;
-}#background swiper-item {
-  height: 100%;
-  width: 100%;
-}
 #background image {
   height: 100%;
   width: 100%;

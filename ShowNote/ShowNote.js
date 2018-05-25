@@ -28,12 +28,11 @@ Page({
   /* 生命周期函数--监听页面加载 */
   onLoad(res) {
     console.log("ShowNote onLoad");
-    this.data = require("../api/deepProxy.js").rendering(this); //对data引入深度代理以实现渲染自动化
+    this.data = require("../api/deepProxy.js").rendering.call(this); //对data引入深度代理以实现渲染自动化
     wx.hideLoading();
     var bgiCurrent = wx.getStorageSync("bgiCurrent");
     if (this.data.current !== bgiCurrent) this.data.current = bgiCurrent;
-    wx.removeStorageSync("item_to_edit");
-    let note = wx.getStorageSync("note");;
+    let note = wx.getStorageSync("note");
     note.forEach((ele, index) => {
       ele.note.record.forEach((ele, id) => {
         ele.record_index = id;
@@ -83,7 +82,7 @@ Page({
     function getResult() {
       if (that.data.input !== undefined) {
         var content = that.data.input.split("");
-      }else content = [];
+      } else var content = [];
       if (content.length > 0) {
         content.forEach((ele, index) => {
           if ("*.?+$^[](){}|\\/".split("").indexOf(ele) !== -1) content[index] = "\\" + ele;
@@ -101,36 +100,35 @@ Page({
         that.data.result = result;
       } else that.data.result = [];
     }
-    if (res.type === "focus") {
-      if (!this.data.searching) {
-        this.data.searching = true;
+    switch (res.type) {
+      case "focus": {
+        if (!this.data.searching) {
+          this.data.searching = true;
+          wx.showToast({
+            title: "检索记事" + (this.data.searchType ? "文本" : "标题"),
+            icon: "none"
+          });
+        }
+        break;
+      }
+      case "input": {
+        if (!this.data.searching) this.data.searching = true;
+        this.data.input = res.detail.value || "";
+        getResult();
+        break;
+      }
+      case "tap": {
+        switch (!!this.data.searchType) {
+          case true: { this.data.searchType = false; break; }
+          case false: { this.data.searchType = true; break; }
+        }
+        if (this.data.searching) this.data.searching = true;
         wx.showToast({
           title: "检索记事" + (this.data.searchType ? "文本" : "标题"),
           icon: "none"
         });
+        if (["", undefined].indexOf(this.data.input) === -1) getResult();
       }
-    } else if (res.type === "input") {
-      if (!this.data.searching) this.data.searching = true;
-      this.data.input = res.detail.value || "";
-      getResult();
-    } else if (res.type === "blur") {
-      if (this.data.searching) {
-        if (["", undefined].indexOf(this.data.input) !== -1 ||
-            JSON.stringify(this.data.result) === "[]") {
-          if ("input" in this.data) delete this.data.input;
-          this.data.searching = false;
-        }
-      }
-    } else if (res.type === "tap") {
-      switch(!!this.data.searchType) {
-        case true: { this.data.searchType = false; break; }
-        case false: { this.data.searchType = true; break; }
-      }
-      wx.showToast({
-        title: "检索记事" + (this.data.searchType ? "文本" : "标题"),
-        icon: "none"
-      });
-      if (["", undefined].indexOf(this.data.input) === -1) getResult();
     }
   },
   //获取所点击的搜索结果所在概览中的位置或阅览所点击的搜索结果的文本记事
@@ -148,7 +146,7 @@ Page({
       if (note.record.length > 0) this.data.playback = note.record;
       if (note.photo.length > 0) this.data.img = note.photo;
       if (note.video.length > 0) this.data.video = note.video;
-    }else {
+    } else {
       this.data.target = res.currentTarget.id;
       (function tips() {
         setTimeout(() => {
@@ -156,7 +154,7 @@ Page({
             that.tag = true;
             that.data.note[id].style.bgc = "#f00";
             that.data.note[id].style.fontColor = "#fff";
-          }else {
+          } else {
             that.tag = false;
             that.data.note[id].style.bgc = "rgba(255, 255, 255, 0.4)";
             that.data.note[id].style.fontColor = "#000";
@@ -165,7 +163,7 @@ Page({
             if (!that.hasOwnProperty("times")) that.times = 0;
             ++that.times;
             tips();
-          }else {
+          } else {
             delete that.tag;
             delete that.times;
           }
@@ -310,10 +308,8 @@ Page({
                       storage.splice(index, 1);
                       if (storage.length > 0) {
                         storage.forEach((ele, index) => { if (ele.id !== index) ele.id = index; });
-                        let note = JSON.parse(JSON.stringify(that.data.note));
-                        note.splice(index, 1);
-                        note.forEach((ele, index) => { if (ele.id !== index) ele.id = index; });
-                        that.data.note = note;
+                        that.data.note.splice(index, 1);
+                        that.data.note.forEach((ele, index) => { if (ele.id !== index) ele.id = index; });
                       }else that.data.note = [];
                       wx.setStorageSync("note", storage);
                       wx.showToast({
@@ -421,7 +417,6 @@ Page({
   },
   //当前页API：复位所有未复位的删除按钮和菜单栏
   hideMenu(item) {
-    var that = this;
     var unhiddenQueue = [];
     this.data.note.forEach((ele, index) => {
       if (parseInt(item) !== index) {
@@ -430,28 +425,12 @@ Page({
       }
     });
     unhiddenQueue.forEach(ele => {
-      if (ele.tag === "pullOutDelete") {
-        (function hideDel() {
-          setTimeout(() => {
-            that.data.note[ele.index].style.pullOutDelete += 10;
-            if (that.data.note[ele.index].style.pullOutDelete > 120) {
-              that.data.note[ele.index].style.pullOutDelete = 120;
-            }
-            if (that.data.note[ele.index].style.pullOutDelete < 120) hideDel();
-          }, 15);
-        })()
-      }
-      if (ele.tag === "pullOutMenu") {
-        (function hideMenu() {
-          setTimeout(() => {
-            that.data.note[ele.index].style.pullOutMenu += 25;
-            if (that.data.note[ele.index].style.pullOutMenu > 330) {
-              that.data.note[ele.index].style.pullOutMenu = 330;
-            }
-            if (that.data.note[ele.index].style.pullOutMenu < 330) hideMenu();
-          }, 15);
-        })()
-      }
+      (function hiding(step, target) {
+        this.data.note[ele.index].style[ele.tag] += step;
+        if (this.data.note[ele.index].style[ele.tag] >= target) {
+          this.data.note[ele.index].style[ele.tag] = target;
+        } else setTimeout(() => hiding.call(this, ...arguments), 15);
+      }).apply(this, /Menu/.test(ele.tag) ? [25, 330] : [10, 120]);
     });
   },
 
@@ -465,7 +444,7 @@ Page({
         if (moveDistance > 0) {
           this.data.bgiChange = 1;
         } else this.data.bgiChange = -1;
-      }else this.data.bgiChange = 0;
+      }else this.data.bgiChange = moveDistance / 37.5;
     } else if (res.type === "touchend") {
       delete anchor[0];
       if (this.data.bgiChange !== 0) {
@@ -488,8 +467,8 @@ Page({
           }
         }
         wx.setStorageSync("bgiCurrent", this.data.current);
-        this.data.bgiChange = 0;
       }
+      if (this.data.bgiChange !== 0) this.data.bgiChange = 0;
     }
   },
   //记事的新建
@@ -499,15 +478,21 @@ Page({
 
   //返回概览区
   backToOverview(res) {
-    this.data.sw = "overview";
-    delete this.data.title;
-    delete this.data.text;
-    delete this.data.playback;
-    delete this.data.img;
-    delete this.data.video;
-    if ("timerQueue" in this) {
-      if (this.timerQueue.length > 0) innerAudioContext.destroy();
-      for (let value of this.timerQueue) clearTimeout(value);
+    if (!this.data.searching) {
+      this.data.sw = "overview";
+      if (this.data.title !== undefined) delete this.data.title;
+      if (this.data.text !== undefined) delete this.data.text;
+      if (this.data.playback !== undefined) delete this.data.playback;
+      if (this.data.img !== undefined) delete this.data.img;
+      if (this.data.video !== undefined) delete this.data.video;
+      if ("timerQueue" in this) {
+        if (this.timerQueue.length > 0) innerAudioContext.destroy();
+        for (let value of this.timerQueue) clearTimeout(value);
+      }
+    }else {
+      this.data.searching = false;
+      if ("input" in this.data) delete this.data.input;
+      if ("result" in this.data) delete this.data.result;
     }
   },
   //记事文本的操作

@@ -86,7 +86,6 @@ page {
     position: absolute;
     height: 37.5%;
     width: 37.5%;
-    border: 6rpx solid black;
     border-radius: 50%;
     display: flex;
     justify-content: center;
